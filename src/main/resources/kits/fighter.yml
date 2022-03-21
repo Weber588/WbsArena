@@ -1,0 +1,36 @@
+display-name: '&cFighter'
+owned-by-default: true
+description:
+  - 'A melee default kit.'
+display-item: stone_sword
+cost: 0
+
+player-state:
+  ==: wbs.utils.util.entities.state.SavedEntityState
+  xp: 0
+  tracked-types:
+    - wbs.utils.util.entities.state.tracker.InventoryState
+    - wbs.utils.util.entities.state.tracker.XPState
+  contents:
+    0:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: STONE_SWORD
+    1:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: STONE_AXE
+    2:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: COOKED_BEEF
+      amount: 5
+    38:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: LEATHER_CHESTPLATE
+    40:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: SHIELD
+  item-slot: 0

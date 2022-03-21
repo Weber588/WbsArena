@@ -1,0 +1,95 @@
+# This will appear before many messages from the plugin.
+message-prefix: '&8[&4WbsArena&8]'
+
+# Use a minecraft colour code here to pick the message colour
+message-colour: 'c'
+
+# The highlight colour (to complement the above colour)
+highlight-colour: '7'
+
+# Errors will be this colour.
+error-colour: '4'
+
+# Error highlights
+error-highlight: '7'
+
+options:
+  # How should kits be unlocked? Options are:
+  # POINT_THRESHOLD (Kits unlock at a certain number of points; if a player drops below a certain number of
+  #   points, they lose access to the kit, and are assigned a random one they do have access to.)
+  # MONEY_COST (Kits are purchased with the default server currency (requires Vault); once purchased, a permission
+  #   is granted)
+  # POINT_COST (Kits are purchased with points. Points are consumed to buy the kits.
+  #   A permission is granted upon purchase.)
+  # PERMISSION_ONLY (Purchasing through the plugin is disabled, and kits are granted based on permissions only.
+  #   Kit permissions take the form "wbsarena.kit.owned.[name]".
+  kit-unlock-method: POINT_THRESHOLD
+
+  # Command related options
+  commands:
+    # How many seconds should "/wbsarena kit preview" last?
+    # To disable this feature, and require players to repeat the preview command to
+    # end their preview, set this to -1.
+    preview-duration: 15
+    # The same as above, but when triggered from the preview menu. Cannot be disabled
+    # by setting to -1, as a player might preview a kit and then not know how to end it.
+    menu-preview-duration: 15
+
+    # Should "/wbsarena kit update" require confirmation to update kits?
+    confirm-update-commands: true
+    # Should "/wbsarena kit update" use a menu for confirmations?
+    # When set to false, the confirmation will require the player to repeat the command.
+    menu-confirm-updates: true
+
+    # Should "/wbsarena kit delete" be disabled, so kits can only be deleted
+    # by deleting a kit file?
+    disable-delete-command: false
+    # Should "/wbsarena kit delete" require confirmation to delete kits?
+    confirm-delete-commands: true
+    # Should "/wbsarena kit delete" use a menu for confirmation?
+    # When set to false, the confirmation will require the player to repeat the command.
+    menu-confirm-deletion: true
+
+
+  # Settings that take effect when a player is in an arena.
+  arena:
+    # Should projectiles that can't be picked up be despawned instantly?
+    # (i.e. Infinity bow arrows, skeleton arrows, drowned tridents)
+    despawn-projectiles: true
+
+    # Stop the player from dropping items?
+    prevent-drops: false
+
+    # Stop the player from gaining hunger?
+    prevent-hunger: false
+
+    # Stop the player from taking the provided types of damage?
+    # You can see a full list of damage causes here:
+    # https://hub.spigotmc.org/javadocs/spigot/org/bukkit/event/entity/EntityDamageEvent.DamageCause.html
+    prevent-damage:
+      # Prevent fall damage?
+      FALL: false
+      # Prevent drowning?
+      DROWNING: false
+      # Missing damage causes will not be prevented.
+
+    # Stop the player from moving items in their inventory?
+    prevent-inventory-management: false
+
+
+  # Settings that take effect when a player is in the lobby.
+  # All options that work in the Arena work here too, and omitted options are considered disabled.
+  lobby:
+    prevent-drops: true
+    prevent-hunger: true
+    prevent-damage:
+      ALL: true
+    prevent-inventory-management: true
+
+locations:
+  # The location where players will be teleported when they die in an arena, or when they join a lobby.
+  # Set this to {} to use the server spawn.
+  lobby: {}
+  # The location where players will be teleported when they leave the lobby.
+  # Set this to {} to use the player's previous location when they leave.
+  lobby-exit: {}

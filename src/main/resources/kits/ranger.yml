@@ -1,0 +1,65 @@
+display-name: '&cRanger'
+owned-by-default: true
+description:
+  - 'A ranged default kit.'
+display-item: bow
+cost: 10
+
+player-state:
+  ==: wbs.utils.util.entities.state.SavedEntityState
+  xp: 0
+  tracked-types:
+    - wbs.utils.util.entities.state.tracker.InventoryState
+    - wbs.utils.util.entities.state.tracker.XPState
+  contents:
+    0:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: BOW
+      meta:
+        ==: ItemMeta
+        meta-type: UNSPECIFIC
+        enchants:
+          ARROW_INFINITE: 1
+    1:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: GOLDEN_CARROT
+      amount: 3
+    2:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: SPLASH_POTION
+      meta:
+        ==: ItemMeta
+        meta-type: POTION
+        potion-type: minecraft:swiftness
+    3:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: SPLASH_POTION
+      meta:
+        ==: ItemMeta
+        meta-type: POTION
+        potion-type: minecraft:swiftness
+    4:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: SPLASH_POTION
+      meta:
+        ==: ItemMeta
+        meta-type: POTION
+        potion-type: minecraft:swiftness
+    36:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: CHAINMAIL_BOOTS
+    39:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: CHAINMAIL_HELMET
+    9:
+      ==: org.bukkit.inventory.ItemStack
+      v: 2586
+      type: ARROW
+  item-slot: 0

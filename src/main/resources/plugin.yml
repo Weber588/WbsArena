@@ -1,0 +1,19 @@
+main: wbs.arena.WbsArena
+name: WbsArena
+version: 0.0.1
+depend:
+  - WbsUtils
+  - Vault
+api-version: 1.16
+author: Weber588
+description: Highly configurable KitPvP plugin, designed for KeiNett's minigames server.
+commands:
+  wbsarena:
+    aliases:
+      - 'arena'
+    description: 'All commands to interact with the plugin.'
+  wbskit:
+    aliases:
+      - 'kit'
+      - 'kits'
+    description: 'Commands relating to kit management. May also be used from /wbsarena kit.'
