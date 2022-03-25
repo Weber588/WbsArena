@@ -183,4 +183,12 @@ public final class ArenaLobby {
             leaveLobby(player);
         }
     }
+
+    public static boolean isInArena(ArenaPlayer player) {
+        return currentArenas.containsKey(player);
+    }
+
+    public static boolean isInArena(ArenaPlayer player, Arena arena) {
+        return currentArenas.get(player) == arena;
+    }
 }

@@ -43,8 +43,13 @@ public class ArenaJoinCommand extends ArenaSubcommand {
 
     private void tryJoin(ArenaPlayer player, String label, String[] args, int start, @Nullable Arena arena) {
         if (ArenaLobby.isInLobby(player)) {
+            if (ArenaLobby.isInArena(player)) {
+                sendMessage("You're already in an arena! Do &h/" + label + " leave&r to leave.", player.getPlayer());
+                return;
+            }
             if (arena == null) {
                 Map<String, Arena> arenaMap = ArenaManager.getAllArenas();
+                // If there's only one arena, don't force the player to use its name
                 if (arenaMap.size() == 1) {
                     String key = arenaMap.keySet().iterator().next();
                     arena = arenaMap.get(key);
