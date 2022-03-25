@@ -37,7 +37,7 @@ public class ArenaDB {
 
     public static void setupDatabase() {
         plugin = WbsArena.getInstance();
-        database = new WbsDatabase(plugin, "quake");
+        database = new WbsDatabase(plugin, "arena");
 
         playerTable = new WbsTable(database, "players", uuidField);
         playerTable.addField(
