@@ -25,7 +25,7 @@ public class KitEditCommand extends KitSubcommand {
     }
 
     private enum EditOption {
-        NAME, DESCRIPTION, COST, ITEM
+        NAME, DESCRIPTION, COST, ITEM, DEFAULT
     }
 
     @Override
@@ -76,6 +76,10 @@ public class KitEditCommand extends KitSubcommand {
                     sendMessage("Invalid material: " + value, sender);
                     return true;
                 }
+            }
+            case DEFAULT -> {
+                boolean isDefault = Boolean.getBoolean(value);
+                kit.setOwnedByDefault(isDefault);
             }
         }
 

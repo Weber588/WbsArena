@@ -44,8 +44,6 @@ public class Kit {
     private boolean ownedByDefault;
     private int cost;
 
-    private boolean isDefaultKit = false;
-
     @NotNull
     private SavedEntityState<Player> playerState;
 
@@ -89,14 +87,6 @@ public class Kit {
 
     public void giveTo(ArenaPlayer player) {
         playerState.restoreState(player.getPlayer());
-    }
-
-    public boolean isDefaultKit() {
-        return isDefaultKit;
-    }
-
-    public void setDefaultKit(boolean defaultKit) {
-        isDefaultKit = defaultKit;
     }
 
     @NotNull

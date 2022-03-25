@@ -1,21 +1,22 @@
 package wbs.arena.data;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import wbs.arena.ArenaLobby;
+import wbs.arena.ArenaSettings;
 import wbs.arena.WbsArena;
-import wbs.arena.arena.Arena;
 import wbs.arena.kit.Kit;
 import wbs.arena.kit.KitManager;
 import wbs.utils.util.database.RecordProducer;
 import wbs.utils.util.database.WbsRecord;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class ArenaPlayer implements RecordProducer {
 
@@ -86,6 +87,10 @@ public class ArenaPlayer implements RecordProducer {
         return name;
     }
 
+    public UUID getUUID() {
+        return uuid;
+    }
+
     @NotNull
     public Kit getCurrentKit() {
         if (kit == null) {
@@ -115,12 +120,28 @@ public class ArenaPlayer implements RecordProducer {
         return points;
     }
 
+    public int getKills() {
+        return kills;
+    }
+
+    public int getDeaths() {
+        return deaths;
+    }
+
     public void setPoints(int points) {
         this.points = points;
     }
 
     public void sendMessage(String message) {
-        WbsArena.getInstance().sendMessage(message, getPlayer());
+        if (player.isOnline()) {
+            WbsArena.getInstance().sendMessage(message, getPlayer());
+        }
+    }
+
+    public void sendMessageNoPrefix(String message) {
+        if (player.isOnline()) {
+            WbsArena.getInstance().sendMessageNoPrefix(message, getPlayer());
+        }
     }
 
     @Override
@@ -137,5 +158,51 @@ public class ArenaPlayer implements RecordProducer {
         record.setField(ArenaDB.kitField, kit.getName());
 
         return record;
+    }
+
+    public void onDeath(@Nullable ArenaPlayer killer) {
+        ArenaSettings settings = WbsArena.getInstance().settings;
+        points -= settings.getDeathPoints();
+
+        if (killer == null) {
+            ArenaLobby.broadcastArena(settings.getDeathMessage(this), this);
+        }
+    }
+
+    public void onKill(@NotNull ArenaPlayer victim) {
+        WbsArena plugin = WbsArena.getInstance();
+        ArenaSettings settings = plugin.settings;
+
+        int killPoints = settings.getKillPoints();
+        points += killPoints;
+
+        String pointsMessage = null;
+        if (killPoints > 1) {
+            pointsMessage = "+" + killPoints + " points!";
+        } else if (killPoints == 1) {
+            pointsMessage = "+" + killPoints + " point!";
+        }
+
+        if (pointsMessage != null) {
+            plugin.sendActionBar(pointsMessage, getPlayer());
+        }
+
+        ArenaLobby.broadcastArena(settings.getKillMessage(this, victim), this);
+
+        giveItemSafely(getPlayer(), settings.getKillRewards().toArray(new ItemStack[0]));
+        getPlayer().addPotionEffects(settings.getKillPotionRewards());
+    }
+
+    private static void giveItemSafely(Player player, ItemStack ... itemStacks) {
+        Inventory inv = player.getInventory();
+
+        Map<Integer, ItemStack> failed = inv.addItem(itemStacks);
+
+        Location dropLocation = player.getEyeLocation();
+        for (ItemStack item : failed.values()) {
+            Objects.requireNonNull(dropLocation.getWorld()).dropItemNaturally(dropLocation, item);
+        }
+
+        failed.size();
     }
 }

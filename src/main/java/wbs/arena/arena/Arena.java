@@ -3,16 +3,28 @@ package wbs.arena.arena;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.*;
+import org.bukkit.util.BoundingBox;
 import wbs.arena.ArenaLobby;
+import wbs.arena.CombatManager;
+import wbs.arena.WbsArena;
 import wbs.arena.data.ArenaPlayer;
 import wbs.arena.kit.Kit;
 import wbs.utils.util.WbsCollectionUtil;
+import wbs.utils.util.WbsEntities;
+import wbs.utils.util.entities.WbsPlayerUtil;
+import wbs.utils.util.entities.state.SavedPlayerState;
+import wbs.utils.util.entities.state.tracker.*;
 import wbs.utils.util.string.WbsStrings;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Defines a region in the world used for fighting
@@ -65,9 +77,34 @@ public class Arena {
         spawnpoints.add(loc);
     }
 
+    private static SavedPlayerState<Player> respawnState;
+    private static SavedPlayerState<Player> getRespawnState() {
+        if (respawnState == null) {
+            respawnState = new SavedPlayerState<>();
+            respawnState.track(new HungerState())
+                    .track(new SaturationState())
+                    .track(new HealthState())
+                    .track(new PotionEffectsState())
+                    .track(new FireTicksState());
+        }
+        respawnState.trackAll();
+
+        return respawnState;
+    }
+
     public void respawn(ArenaPlayer player) {
         Kit kit = player.getCurrentKit();
         kit.giveTo(player);
+
+        // TODO: Move this elsewhere for when more than just respawning triggers it (such as leaving the arena)
+        if (WbsArena.getInstance().settings.deleteProjectilesOnDeath()) {
+            CombatManager.getRegisteredProjectiles(player).forEach(Entity::remove);
+        } else if (WbsArena.getInstance().settings.deleteTridentsOnDeath()) {
+            CombatManager.getRegisteredProjectiles(player)
+                    .stream()
+                    .filter(proj -> proj instanceof Trident)
+                    .forEach(Entity::remove);
+        }
 
         if (!spawnpoints.isEmpty()) {
             // TODO: Implement distance from nearby players to select spawnpoints.
@@ -77,6 +114,8 @@ public class Arena {
         } else {
             player.sendMessage("No spawnpoints defined for arena " + getName() + "!");
         }
+
+        getRespawnState().restoreState(player.getPlayer());
     }
 
     public YamlConfiguration toConfig(YamlConfiguration config) {
@@ -89,7 +128,7 @@ public class Arena {
     }
 
     private String blockToString(Block block) {
-        return blockMin.getX() + ", " + blockMin.getY() + ", " + blockMin.getZ() + ", " + blockMin.getWorld().getName();
+        return block.getX() + ", " + block.getY() + ", " + block.getZ() + ", " + block.getWorld().getName();
     }
 
     public List<Location> getSpawnpoints() {

@@ -4,6 +4,9 @@ import wbs.arena.command.ArenaCommand;
 import wbs.arena.command.KitCommand;
 import wbs.arena.data.ArenaDB;
 import wbs.arena.kit.unlock.KitUnlockMethod;
+import wbs.arena.listeners.CommandListener;
+import wbs.arena.listeners.CombatListener;
+import wbs.arena.listeners.MiscListener;
 import wbs.utils.util.plugin.WbsPlugin;
 
 public class WbsArena extends WbsPlugin {
@@ -29,5 +32,14 @@ public class WbsArena extends WbsPlugin {
 
         new ArenaCommand(this, getCommand("wbsarena"));
         new KitCommand(this, getCommand("wbskit"));
+
+        registerListener(new CombatListener());
+        registerListener(new MiscListener());
+        registerListener(new CommandListener());
+    }
+
+    @Override
+    public void onDisable() {
+        ArenaLobby.clear();
     }
 }

@@ -1,27 +1,37 @@
 package wbs.arena;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 import wbs.arena.arena.Arena;
 import wbs.arena.arena.ArenaManager;
+import wbs.arena.data.ArenaPlayer;
 import wbs.arena.kit.Kit;
 import wbs.arena.kit.KitManager;
 import wbs.arena.kit.unlock.KitUnlockMethod;
 import wbs.arena.kit.unlock.PointThresholdUnlockMethod;
+import wbs.utils.util.WbsEnums;
 import wbs.utils.util.plugin.WbsSettings;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class ArenaSettings extends WbsSettings {
-    /**
-     * Duration in ticks
-     */
     public static final int DEFAULT_PREVIEW_DURATION = 300;
+    public static final int DEFAULT_COMBAT_TAG_DURATION = 60;
 
     private final File kitsDir;
     private final File arenasDir;
@@ -53,36 +63,307 @@ public class ArenaSettings extends WbsSettings {
 
         config = loadDefaultConfig(configName);
 
-        ConfigurationSection options = config.getConfigurationSection("options");
-
-        if (options == null) {
-            logger.warning("No options config section found. Default settings will be used.");
-            unlockMethod = KitUnlockMethod.getMethod(PointThresholdUnlockMethod.POINT_THRESHOLD_ID);
-        } else {
-            unlockMethod = KitUnlockMethod.getMethod(
-                    options.getString("kit-unlock-method", PointThresholdUnlockMethod.POINT_THRESHOLD_ID));
-
-            ConfigurationSection commandsSection = options.getConfigurationSection("commands");
-            if (commandsSection == null) {
-                logger.warning("No commands config section found. Default settings will be used.");
-            } else {
-                previewDuration = (int) (commandsSection.getDouble("preview-duration", previewDuration / 20.0) * 20);
-                menuPreviewDuration = (int) (commandsSection.getDouble("menu-preview-duration", menuPreviewDuration / 20.0) * 20);
-
-                confirmUpdateCommands = commandsSection.getBoolean("confirm-update-commands", confirmUpdateCommands);
-                menuConfirmUpdates = commandsSection.getBoolean("menu-confirm-updates", menuConfirmUpdates);
-
-                disableDeleteCommand = commandsSection.getBoolean("disable-delete-command", disableDeleteCommand);
-                confirmDeleteCommands = commandsSection.getBoolean("confirm-delete-commands", confirmDeleteCommands);
-                menuConfirmDeletion = commandsSection.getBoolean("menu-confirm-deletion", menuConfirmDeletion);
-            }
-        }
+        loadOptions("config.yml");
 
         loadKits();
         loadArenas();
         loadLobbyLocation();
     }
 
+    private void loadOptions(String directory) {
+        ConfigurationSection options = config.getConfigurationSection("options");
+        directory += "/options";
+
+        if (options == null) {
+            logger.warning("No options config section found. Default settings will be used.");
+            unlockMethod = KitUnlockMethod.getMethod(PointThresholdUnlockMethod.POINT_THRESHOLD_ID);
+        } else {
+            String kitUnlockString = options.getString("kit-unlock-method");
+            unlockMethod = KitUnlockMethod.getMethod(kitUnlockString);
+            if (unlockMethod == null) {
+                logError("Invalid kit unlock method: " + kitUnlockString, directory + "/kit-unlock-method");
+                unlockMethod = KitUnlockMethod.getMethod(PointThresholdUnlockMethod.POINT_THRESHOLD_ID);
+            }
+
+            loadCommandOptions(options, directory);
+            loadArenaOptions(options, directory);
+        }
+    }
+
+    private void loadArenaOptions(ConfigurationSection options, String directory) {
+        ConfigurationSection arenaSection = options.getConfigurationSection("arena");
+        directory += "/arena";
+        if (arenaSection == null) {
+            logger.warning("No arena config section found. Default settings will be used.");
+        } else {
+            loadCombatOptions(arenaSection, directory);
+
+            despawnProjectiles = arenaSection.getBoolean("despawn-projectiles", despawnProjectiles);
+
+            commandsDisabledInArena = arenaSection.getStringList("disabled-commands");
+            commandsWhitelistedInArena = arenaSection.getStringList("allowed-commands");
+
+            preventDropsInArena = arenaSection.getBoolean("prevent-drops", preventDropsInArena);
+
+            killFormat = arenaSection.getString("kill-message-format", killFormat);
+            deathFormat = arenaSection.getString("death-message-format", deathFormat);
+
+            killPoints = arenaSection.getInt("points-per-kill", killPoints);
+            deathPoints = arenaSection.getInt("points-per-death", deathPoints);
+
+            loadKillRewards(arenaSection, directory);
+
+            ConfigurationSection damageCauseSection = arenaSection.getConfigurationSection("prevent-damage");
+            if (damageCauseSection != null) {
+                for (String key : damageCauseSection.getKeys(false)) {
+                    DamageCause cause = WbsEnums.getEnumFromString(DamageCause.class, key);
+                    if (cause == null) {
+                        logError("Invalid damage cause: " + key, directory + "/prevent-damage");
+                        continue;
+                    }
+
+                    if (damageCauseSection.getBoolean(key, false)) {
+                        damageIgnoredInArena.add(cause);
+                    }
+                }
+            }
+
+            preventItemMgmtInArena = arenaSection.getBoolean("prevent-inventory-management", preventItemMgmtInArena);
+            preventItemDamageInArena = arenaSection.getBoolean("prevent-item-damage", preventItemDamageInArena);
+
+            deleteProjectilesOnDeath = arenaSection.getBoolean("delete-projectiles-on-death", deleteProjectilesOnDeath);
+            deleteTridentsOnDeath = arenaSection.getBoolean("delete-tridents-on-death", deleteTridentsOnDeath);
+        }
+    }
+
+    private void loadKillRewards(ConfigurationSection arenaSection, String directory) {
+        ConfigurationSection rewardsSection = arenaSection.getConfigurationSection("kill-rewards");
+        directory += "/kill-rewards";
+
+        if (rewardsSection == null) {
+            logger.warning("No kill rewards section found. Default settings will be used.");
+        } else {
+            ConfigurationSection itemsSection = rewardsSection.getConfigurationSection("items");
+            String itemDirectory = directory + "/items";
+
+            if (itemsSection != null) {
+                for (String itemKey : itemsSection.getKeys(false)) {
+                    if (itemsSection.isConfigurationSection(itemKey)) {
+                        ItemStack item = itemsSection.getItemStack(itemKey);
+
+                        if (item != null) {
+                            killRewards.add(item);
+                            continue;
+                        }
+                    }
+
+                    Material material = WbsEnums.materialFromString(itemKey);
+                    if (material == null) {
+                        logError("Invalid item: " + itemKey, itemDirectory + "/");
+                    }
+                }
+            }
+
+            ConfigurationSection potionSection = rewardsSection.getConfigurationSection("potions");
+            String potionDirectory = directory + "/potions";
+
+            if (potionSection != null) {
+                for (String potionKey : potionSection.getKeys(false)) {
+                    ConfigurationSection potionInstance = potionSection.getConfigurationSection(potionKey);
+                    if (potionInstance == null) {
+                        logError("Potion rewards must be .", potionDirectory + "/" + potionKey);
+                        continue;
+                    }
+
+                    PotionEffectType type = PotionEffectType.getByName(potionKey);
+
+                    if (type == null) {
+                        logError("Invalid potion type: " + potionKey, potionDirectory);
+                        continue;
+                    }
+
+                    int duration = (int) (potionInstance.getDouble("duration", 3.0 / 20) * 20);
+                    int level = potionInstance.getInt("level", 1) - 1;
+
+                    PotionEffect effect = new PotionEffect(type, duration, level, true, false, true);
+
+                    killPotionRewards.add(effect);
+                }
+            }
+        }
+    }
+
+    private void loadCombatOptions(ConfigurationSection arenaSection, String directory) {
+        ConfigurationSection combatTaggingSection = arenaSection.getConfigurationSection("combat-tagging");
+        directory += "/combat-tagging";
+        if (combatTaggingSection == null) {
+            logger.warning("No combat tagging config section found. Default settings will be used.");
+        } else {
+            combatTagDuration = (int) (combatTaggingSection.getDouble("combat-tag-duration", combatTagDuration / 20.0) * 20);
+
+            commandsDisabledInCombat = combatTaggingSection.getStringList("disabled-commands");
+            commandsWhitelistedInCombat = combatTaggingSection.getStringList("allowed-commands");
+        }
+    }
+
+    private void loadCommandOptions(@NotNull ConfigurationSection options, String directory) {
+        ConfigurationSection commandsSection = options.getConfigurationSection("commands");
+        directory += "/commands";
+
+        if (commandsSection == null) {
+            logger.warning("No commands config section found. Default settings will be used.");
+        } else {
+            previewDuration = (int) (commandsSection.getDouble("preview-duration", previewDuration / 20.0) * 20);
+            menuPreviewDuration = (int) (commandsSection.getDouble("menu-preview-duration", menuPreviewDuration / 20.0) * 20);
+
+            confirmUpdateCommands = commandsSection.getBoolean("confirm-update-commands", confirmUpdateCommands);
+            menuConfirmUpdates = commandsSection.getBoolean("menu-confirm-updates", menuConfirmUpdates);
+
+            disableDeleteCommand = commandsSection.getBoolean("disable-delete-command", disableDeleteCommand);
+            confirmDeleteCommands = commandsSection.getBoolean("confirm-delete-commands", confirmDeleteCommands);
+            menuConfirmDeletion = commandsSection.getBoolean("menu-confirm-deletion", menuConfirmDeletion);
+        }
+    }
+
+    public Location getLobbyLocation() {
+        return lobbyLocation;
+    }
+
+    // region options
+    private KitUnlockMethod unlockMethod;
+    public KitUnlockMethod getUnlockMethod() {
+        return unlockMethod;
+    }
+
+    private int combatTagDuration = DEFAULT_COMBAT_TAG_DURATION;
+    public int getCombatTagDuration() {
+        return combatTagDuration;
+    }
+
+    private List<String> commandsDisabledInArena;
+    public List<String> getCommandsDisabledInArena() {
+        return new LinkedList<>(commandsDisabledInArena);
+    }
+
+    private List<String> commandsDisabledInCombat;
+    public List<String> getCommandsDisabledInCombat() {
+        return new LinkedList<>(commandsDisabledInCombat);
+    }
+
+    private List<String> commandsWhitelistedInArena;
+    public List<String> getCommandsWhitelistedInArena() {
+        return new LinkedList<>(commandsWhitelistedInArena);
+    }
+
+    private List<String> commandsWhitelistedInCombat;
+    public List<String> getCommandsWhitelistedInCombat() {
+        return new LinkedList<>(commandsWhitelistedInCombat);
+    }
+
+    private boolean despawnProjectiles = true;
+    public boolean despawnProjectiles() {
+        return despawnProjectiles;
+    }
+
+    private boolean preventDropsInArena = false;
+    public boolean preventDropsInArena() {
+        return preventDropsInArena;
+    }
+
+    private final List<EntityDamageEvent.DamageCause> damageIgnoredInArena = new LinkedList<>();
+    public boolean preventDamageInArena(EntityDamageEvent.DamageCause cause) {
+        return damageIgnoredInArena.contains(cause);
+    }
+
+    private boolean preventItemMgmtInArena = false;
+    public boolean preventItemMgmtInArena() {
+        return preventItemMgmtInArena;
+    }
+
+    private boolean preventItemDamageInArena = true;
+    public boolean preventItemDamageInArena() {
+        return preventItemDamageInArena;
+    }
+
+    private boolean deleteProjectilesOnDeath = true;
+    public boolean deleteProjectilesOnDeath() {
+        return deleteProjectilesOnDeath;
+    }
+
+    private boolean deleteTridentsOnDeath = true;
+    public boolean deleteTridentsOnDeath() {
+        return deleteTridentsOnDeath;
+    }
+
+    private int previewDuration = DEFAULT_PREVIEW_DURATION;
+    public int getPreviewDuration() {
+        return previewDuration;
+    }
+
+    private int menuPreviewDuration = DEFAULT_PREVIEW_DURATION;
+    public int getMenuPreviewDuration() {
+        return menuPreviewDuration;
+    }
+
+    private boolean confirmUpdateCommands = true;
+    public boolean confirmUpdateCommands() {
+        return confirmUpdateCommands;
+    }
+
+    private boolean menuConfirmUpdates = true;
+    public boolean menuConfirmUpdates() {
+        return menuConfirmUpdates;
+    }
+
+    private boolean disableDeleteCommand = false;
+    public boolean disableDeleteCommand() {
+        return disableDeleteCommand;
+    }
+
+    private boolean confirmDeleteCommands = true;
+    public boolean confirmDeleteCommands() {
+        return confirmDeleteCommands;
+    }
+
+    private boolean menuConfirmDeletion = true;
+    public boolean menuConfirmDeletion() {
+        return menuConfirmDeletion;
+    }
+
+    private String killFormat = "%victim% was slain by %attacker%!";
+    public String getKillMessage(@NotNull ArenaPlayer attacker, @NotNull ArenaPlayer victim) {
+        return killFormat.replace("%attacker", attacker.getName())
+                .replace("%victim%", victim.getName());
+    }
+
+    private String deathFormat = "%victim% died!";
+    public String getDeathMessage(@NotNull ArenaPlayer victim) {
+        return deathFormat.replace("%victim%", victim.getName());
+    }
+
+    private int killPoints = 2;
+    public int getKillPoints() {
+        return killPoints;
+    }
+
+    private int deathPoints = 1;
+    public int getDeathPoints() {
+        return deathPoints;
+    }
+
+    private final List<ItemStack> killRewards = new LinkedList<>();
+    public List<ItemStack> getKillRewards() {
+        return new LinkedList<>(killRewards);
+    }
+
+    private final List<PotionEffect> killPotionRewards = new LinkedList<>();
+    public List<PotionEffect> getKillPotionRewards() {
+        return new LinkedList<>(killPotionRewards);
+    }
+
+    // endregion
+
+    // region Kit, Arena, Lobby loading
     /**
      * Lobby location is saved & loaded from misc.yml, a commentless yml file that can be written to without
      * destroying the formatting of config.yml.
@@ -95,43 +376,6 @@ public class ArenaSettings extends WbsSettings {
 
         YamlConfiguration misc = loadConfigSafely(miscFile);
         lobbyLocation = misc.getLocation("lobby-location");
-    }
-
-    public Location getLobbyLocation() {
-        return lobbyLocation;
-    }
-    public boolean setLobbyLocation(Location lobbyLocation) {
-        String fileName = "misc.yml";
-        File file = new File(plugin.getDataFolder(), fileName);
-
-        if (!file.exists()) {
-            try {
-                if (!file.createNewFile()) {
-                    plugin.logger.severe(fileName + " failed to create!");
-                }
-            } catch (IOException e) {
-                plugin.logger.severe(fileName + " failed to create!");
-                e.printStackTrace();
-                return false;
-            }
-
-            plugin.logger.info(fileName + " created!");
-        }
-
-        YamlConfiguration miscConfig = loadConfigSafely(file);
-        miscConfig.set("lobby-location", lobbyLocation);
-
-        try {
-            miscConfig.save(file);
-        } catch (IOException e) {
-            plugin.logger.severe(fileName + " failed to save!");
-            e.printStackTrace();
-            return false;
-        }
-
-        plugin.logger.info("Saved " + fileName + "!");
-        this.lobbyLocation = lobbyLocation;
-        return true;
     }
 
     private void loadKits() {
@@ -214,45 +458,45 @@ public class ArenaSettings extends WbsSettings {
             logger.info(arenasLoaded + " arenas loaded.");
         }
     }
+    // endregion
 
-    private KitUnlockMethod unlockMethod;
-    public KitUnlockMethod getUnlockMethod() {
-        return unlockMethod;
+    // region Kit, Arena, Lobby saving
+    public int setLobbyLocationAsync(Location location, Consumer<Boolean> resultConsumer) {
+        return plugin.getAsync(() -> setLobbyLocation(location), resultConsumer);
     }
 
-    private int previewDuration = DEFAULT_PREVIEW_DURATION;
-    public int getPreviewDuration() {
-        return previewDuration;
-    }
+    public boolean setLobbyLocation(Location lobbyLocation) {
+        String fileName = "misc.yml";
+        File file = new File(plugin.getDataFolder(), fileName);
 
-    private int menuPreviewDuration = DEFAULT_PREVIEW_DURATION;
-    public int getMenuPreviewDuration() {
-        return menuPreviewDuration;
-    }
+        if (!file.exists()) {
+            try {
+                if (!file.createNewFile()) {
+                    plugin.logger.severe(fileName + " failed to create!");
+                }
+            } catch (IOException e) {
+                plugin.logger.severe(fileName + " failed to create!");
+                e.printStackTrace();
+                return false;
+            }
 
-    private boolean confirmUpdateCommands = true;
-    public boolean confirmUpdateCommands() {
-        return confirmUpdateCommands;
-    }
+            plugin.logger.info(fileName + " created!");
+        }
 
-    private boolean menuConfirmUpdates = true;
-    public boolean menuConfirmUpdates() {
-        return menuConfirmUpdates;
-    }
+        YamlConfiguration miscConfig = loadConfigSafely(file);
+        miscConfig.set("lobby-location", lobbyLocation);
 
-    private boolean disableDeleteCommand = false;
-    public boolean disableDeleteCommand() {
-        return disableDeleteCommand;
-    }
+        try {
+            miscConfig.save(file);
+        } catch (IOException e) {
+            plugin.logger.severe(fileName + " failed to save!");
+            e.printStackTrace();
+            return false;
+        }
 
-    private boolean confirmDeleteCommands = true;
-    public boolean confirmDeleteCommands() {
-        return confirmDeleteCommands;
-    }
-
-    private boolean menuConfirmDeletion = true;
-    public boolean menuConfirmDeletion() {
-        return menuConfirmDeletion;
+        plugin.logger.info("Saved " + fileName + "!");
+        this.lobbyLocation = lobbyLocation;
+        return true;
     }
 
     /**
@@ -382,4 +626,6 @@ public class ArenaSettings extends WbsSettings {
         plugin.logger.info("Saved " + fileName + "!");
         return true;
     }
+
+    // endregion
 }

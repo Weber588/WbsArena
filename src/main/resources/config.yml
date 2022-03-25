@@ -53,15 +53,69 @@ options:
 
   # Settings that take effect when a player is in an arena.
   arena:
-    # Should projectiles that can't be picked up be despawned instantly?
+    combat-tagging:
+
+      # How long (in seconds) a player should be considered "in combat" for after taking damage from another
+      # player. If the player logs out or leaves the arena while in combat,
+      combat-tag-duration: 3
+
+      # Which commands should be disabled while in combat?
+      # If allowed-commands is uncommented as well, this will only affect
+      # the commands allowed there. For example, if "arena" is allowed,
+      # "arena leave" in this list will still block leave without blocking others.
+      disabled-commands:
+        - arena leave
+
+      # Which commands should be allowed while in combat?
+      # Uncommenting this will act as a whitelist, where any command that doesn't
+      # start with an element from the list will be blocked.
+     # allowed-commands:
+     #   - msg
+     #   - arena
+
+    # The death message that appears when a player dies to another player
+    kill-message-format: '%victim% was slain by %attacker%!'
+    # The death message that appears when a player dies without being directly killed
+    death-message-format: '%victim% died!'
+
+    # How many points should the player get when they get a kill?
+    points-per-kill: 2
+    # How many points should the player lose when they die?
+    points-per-death: 1
+
+    # Non-point related kill rewards that get applied whenever a player gets a kill
+    kill-rewards:
+      # Items to give the player when they get a kill, in the format "ITEM_TYPE: AMOUNT"
+      items:
+        # Give 1 golden apple on a kill
+        GOLDEN_APPLE: 1
+
+      # Potion effects to apply to the player when they get a kill
+      potions:
+        SPEED: # The potion effect name
+          duration: 3 # How long (in seconds) the potion effect should last
+          level: 2 # What level should the effect be?
+
+    # Should projectiles that can't be picked up be despawned after landing?
     # (i.e. Infinity bow arrows, skeleton arrows, drowned tridents)
     despawn-projectiles: true
 
-    # Stop the player from dropping items?
-    prevent-drops: false
+    # Which commands should be disabled while in the arena?
+    # These are always disabled in the arena, but you can disable commands
+    # just while in combat above.
+    disabled-commands:
+      - tpa
+      - tpaccept
 
-    # Stop the player from gaining hunger?
-    prevent-hunger: false
+    # Which commands should be allowed while in combat?
+    # Uncommenting this will act as a whitelist, where any command that doesn't
+    # start with an element from the list will be blocked.
+   # allowed-commands:
+   #   - msg
+   #   - arena
+
+    # Stop the player from manually dropping items?
+    prevent-drops: false
 
     # Stop the player from taking the provided types of damage?
     # You can see a full list of damage causes here:
@@ -76,20 +130,13 @@ options:
     # Stop the player from moving items in their inventory?
     prevent-inventory-management: false
 
+    # Should items (including armour) be prevented from taking durability while in the arena?
+    prevent-item-damage: true
 
-  # Settings that take effect when a player is in the lobby.
-  # All options that work in the Arena work here too, and omitted options are considered disabled.
-  lobby:
-    prevent-drops: true
-    prevent-hunger: true
-    prevent-damage:
-      ALL: true
-    prevent-inventory-management: true
+    # Should projectiles shot by the player be deleted the moment they die or leave the arena?
+    delete-projectiles-on-death: false
 
-locations:
-  # The location where players will be teleported when they die in an arena, or when they join a lobby.
-  # Set this to {} to use the server spawn.
-  lobby: {}
-  # The location where players will be teleported when they leave the lobby.
-  # Set this to {} to use the player's previous location when they leave.
-  lobby-exit: {}
+    # Should tridents thrown by the player be deleted the moment they die or leave the arena?
+    # This will always be on if the above option is on, however this can be used to prevent players
+    # getting duplicate loyalty tridents after respawning if they get back into the arena quick enough.
+    delete-tridents-on-death: true

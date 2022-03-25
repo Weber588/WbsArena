@@ -103,7 +103,7 @@ public final class KitManager {
     }
 
     public static boolean canUse(ArenaPlayer player, Kit kit) {
-        return WbsArena.getInstance().settings.getUnlockMethod().canUse(player, kit) || kit.isDefaultKit();
+        return WbsArena.getInstance().settings.getUnlockMethod().canUse(player, kit) || kit.isOwnedByDefault();
     }
 
     public static String getCostFormat() {

@@ -17,7 +17,7 @@ public class PointThresholdUnlockMethod extends KitUnlockMethod {
 
     @Override
     public String getUnlockDescription(Kit kit) {
-        return "Unlock this kit by reaching " + formatCost(kit) + "!";
+        return "Unlock this kit by reaching " + formatCost(kit) + " points!";
     }
 
     @Override
