@@ -18,6 +18,7 @@ import wbs.utils.util.database.RecordProducer;
 import wbs.utils.util.database.WbsRecord;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class ArenaPlayer implements RecordProducer {
 
@@ -29,6 +30,8 @@ public class ArenaPlayer implements RecordProducer {
     private int kills = 0;
     private int deaths = 0;
     private int points = 0;
+
+    private boolean pendingSave = false;
 
     private Kit kit;
 
@@ -56,7 +59,7 @@ public class ArenaPlayer implements RecordProducer {
         points = record.getOrDefault(ArenaDB.pointsField, Integer.class);
 
         String kitName = record.getOrDefault(ArenaDB.kitField, String.class);
-        kit = KitManager.getKit(kitName);
+    //    kit = KitManager.getKit(kitName);
         if (kit == null) {
             chooseRandomKit();
         }
@@ -102,6 +105,7 @@ public class ArenaPlayer implements RecordProducer {
 
     public void setKit(@NotNull Kit kit) {
         this.kit = kit;
+        markAsPendingSave();
     }
 
     /**
@@ -133,12 +137,37 @@ public class ArenaPlayer implements RecordProducer {
         return kills;
     }
 
+    public int addKill() {
+        markAsPendingSave();
+        return ++kills;
+    }
+
     public int getDeaths() {
         return deaths;
     }
 
+    public int addDeath() {
+        markAsPendingSave();
+        return ++deaths;
+    }
+
     public void setPoints(int points) {
+        markAsPendingSave();
         this.points = points;
+    }
+
+    public void addPoints(int points) {
+        markAsPendingSave();
+        this.points += points;
+    }
+
+    public void removePoints(int points) {
+        markAsPendingSave();
+        this.points -= points;
+        int minPoints = WbsArena.getInstance().settings.getMinimumPoints();
+        if (this.points < minPoints) {
+            this.points = minPoints;
+        }
     }
 
     public void sendMessage(String message) {
@@ -171,9 +200,9 @@ public class ArenaPlayer implements RecordProducer {
 
     public void onDeath(@Nullable ArenaPlayer killer) {
         ArenaSettings settings = WbsArena.getInstance().settings;
-        points -= settings.getDeathPoints();
 
-        deaths++;
+        removePoints(settings.getDeathPoints());
+        addDeath();
 
         if (killer == null) {
             ArenaLobby.broadcastArena(settings.getDeathMessage(this), this);
@@ -197,9 +226,8 @@ public class ArenaPlayer implements RecordProducer {
         ArenaSettings settings = plugin.settings;
 
         int killPoints = settings.getKillPoints();
-        points += killPoints;
-
-        kills++;
+        addPoints(killPoints);
+        addKill();
 
         String pointsMessage = null;
         if (killPoints > 1) {
@@ -229,5 +257,24 @@ public class ArenaPlayer implements RecordProducer {
         }
 
         failed.size();
+    }
+
+    public void markAsPendingSave() {
+        pendingSave = true;
+
+        switch (WbsArena.getInstance().settings.getSaveMethod()) {
+            case INSTANT -> pendingSave = true;
+            case PERIODIC -> ArenaDB.getPlayerManager().addToPendingSaves(this);
+            case DISCONNECT -> {
+            }
+        }
+    }
+
+    public boolean isPendingSave() {
+        return pendingSave;
+    }
+
+    public void setPendingSave(boolean pendingSave) {
+        this.pendingSave = pendingSave;
     }
 }

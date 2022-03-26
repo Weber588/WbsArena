@@ -17,11 +17,16 @@ import wbs.arena.ArenaLobby;
 import wbs.arena.ArenaSettings;
 import wbs.arena.WbsArena;
 import wbs.arena.arena.Arena;
+import wbs.arena.data.ArenaDB;
 import wbs.arena.data.ArenaPlayer;
 import wbs.arena.event.ArenaDeathEvent;
 
 import wbs.arena.CombatManager;
 import wbs.arena.CombatManager.CombatTag;
+import wbs.utils.util.string.WbsStrings;
+
+import java.util.LinkedList;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public class CombatListener implements Listener {
@@ -98,10 +103,25 @@ public class CombatListener implements Listener {
             WbsArena.getInstance().pluginManager.callEvent(deathEvent);
 
             if (!deathEvent.isCancelled()) {
+                List<ArenaPlayer> toSave = new LinkedList<>();
+                if (settings.getSaveMethod() == ArenaSettings.SaveMethod.INSTANT) {
+                    toSave.add(victim);
+                }
                 ArenaPlayer attackerInArena = deathEvent.getKillingPlayer();
                 victim.onDeath(attackerInArena);
                 if (attackerInArena != null) {
                     attackerInArena.onKill(victim);
+                    if (settings.getSaveMethod() == ArenaSettings.SaveMethod.INSTANT) {
+                        toSave.add(attackerInArena);
+                    }
+                }
+
+                if (!toSave.isEmpty()) {
+                    toSave.forEach(saved -> saved.setPendingSave(true));
+                    ArenaDB.getPlayerManager().saveAsync(toSave, () -> {
+                        toSave.forEach(saved -> saved.setPendingSave(false));
+                        WbsArena.getInstance().logger.info("Saved " + toSave.size() + " player(s).");
+                    });
                 }
             }
         }

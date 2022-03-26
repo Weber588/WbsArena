@@ -12,6 +12,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import wbs.arena.arena.Arena;
 import wbs.arena.arena.ArenaManager;
+import wbs.arena.data.ArenaDB;
 import wbs.arena.data.ArenaPlayer;
 import wbs.arena.kit.Kit;
 import wbs.arena.kit.KitManager;
@@ -84,6 +85,28 @@ public class ArenaSettings extends WbsSettings {
                 logError("Invalid kit unlock method: " + kitUnlockString, directory + "/kit-unlock-method");
                 unlockMethod = KitUnlockMethod.getMethod(PointThresholdUnlockMethod.POINT_THRESHOLD_ID);
             }
+
+            leaderboardRefreshRate = (int)
+                    (options.getDouble("leaderboard-refresh-rate", leaderboardRefreshRate / (20.0 * 60.0)) * 20.0 * 60.0);
+
+            String saveMethodString = options.getString("save-method", saveMethod.name());
+            saveMethod = WbsEnums.getEnumFromString(SaveMethod.class, saveMethodString);
+            if (saveMethod == null) {
+                saveMethod = SaveMethod.INSTANT;
+                logError("Invalid save method: " + saveMethodString, directory + "/save-method");
+            }
+
+            saveFrequency = (int)
+                    (options.getDouble("save-frequency", saveFrequency / (20.0 * 60.0)) * 20.0 * 60.0);
+
+            if (saveMethod == SaveMethod.PERIODIC) {
+                ArenaDB.getPlayerManager().startSaveTimer();
+            } else {
+                // Cancel in case the save method was previously PERIODIC and this was just a reload
+                ArenaDB.getPlayerManager().cancelSaveTimer();
+            }
+
+            minimumPoints = options.getInt("minimum-points", Integer.MIN_VALUE);
 
             loadCommandOptions(options, directory);
             loadArenaOptions(options, directory);
@@ -351,6 +374,26 @@ public class ArenaSettings extends WbsSettings {
     private int killPoints = 2;
     public int getKillPoints() {
         return killPoints;
+    }
+
+    private int leaderboardRefreshRate = 2 * 20 * 60;
+    public int leaderboardRefreshRate() {
+        return leaderboardRefreshRate;
+    }
+
+    private SaveMethod saveMethod = SaveMethod.INSTANT;
+    public SaveMethod getSaveMethod() {
+        return saveMethod;
+    }
+
+    private int saveFrequency = 5 * 20 * 60;
+    public int saveFrequency() {
+        return saveFrequency;
+    }
+
+    private int minimumPoints = 0;
+    public int getMinimumPoints() {
+        return minimumPoints;
     }
 
     private int deathPoints = 1;
@@ -635,4 +678,10 @@ public class ArenaSettings extends WbsSettings {
     }
 
     // endregion
+
+    public enum SaveMethod {
+        INSTANT,
+        PERIODIC,
+        DISCONNECT
+    }
 }

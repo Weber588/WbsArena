@@ -25,6 +25,26 @@ options:
   #   Kit permissions take the form "wbsarena.kit.owned.[name]".
   kit-unlock-method: POINT_THRESHOLD
 
+  # When should player data be saved? Options are:
+  # INSTANT (Player data saves as soon as they die, get a kill, or spend points)
+  # PERIODIC (Player data is saved intermittently, at a frequency determined by save-frequency (below))
+  # DISCONNECT (Player data is saved when a player disconnects, or when leaderboards are recalculated)
+  save-method: INSTANT
+
+  # How often (in minutes) should the player data be saved, when save-method is set to periodic?
+  save-frequency: 5
+
+  # How old (in minutes) does leaderboard data need to be before refreshing?
+  # Note that recalculating refresh rates will automatically save all cached player data before retrieving
+  # the leaderboard, regardless of which save-method is used.
+  leaderboard-refresh-rate: 2
+
+  # What should the minimum amount of points be?
+  # This takes effect when points-per-death is set, if you want to prevent
+  # them from going below a certain threshold.
+  # Comment out this to remove the lower limit.
+  minimum-points: 0
+
   # Command related options
   commands:
     # How many seconds should "/wbsarena kit preview" last?

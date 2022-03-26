@@ -29,7 +29,7 @@ public final class KitManager {
     }
 
     @Nullable
-    public static Kit getKit(String kitName) {
+    public static Kit getKit(@NotNull String kitName) {
         return kits.get(kitName.toLowerCase());
     }
 

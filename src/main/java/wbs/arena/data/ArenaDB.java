@@ -40,6 +40,7 @@ public class ArenaDB {
         database = new WbsDatabase(plugin, "arena");
 
         playerTable = new WbsTable(database, "players", uuidField);
+        playerTable.setDebugMode(true);
         playerTable.addField(
                 nameField,
 

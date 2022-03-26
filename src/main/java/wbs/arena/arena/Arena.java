@@ -1,6 +1,7 @@
 package wbs.arena.arena;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -85,6 +86,7 @@ public class Arena {
                     .track(new SaturationState())
                     .track(new HealthState())
                     .track(new PotionEffectsState())
+                    .track(new GameModeState(GameMode.ADVENTURE))
                     .track(new FireTicksState());
         }
         respawnState.trackAll();

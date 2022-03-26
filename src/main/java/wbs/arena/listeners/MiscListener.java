@@ -14,6 +14,8 @@ import wbs.arena.WbsArena;
 import wbs.arena.data.ArenaDB;
 import wbs.arena.data.ArenaPlayer;
 
+import java.util.Collections;
+
 @SuppressWarnings("unused")
 public class MiscListener implements Listener {
 
@@ -23,16 +25,25 @@ public class MiscListener implements Listener {
     public void onDisconnect(PlayerQuitEvent event) {
         Player player = event.getPlayer();
 
+        ArenaPlayer foundArenaPlayer = null;
+
         ArenaPlayer playerInLobby = ArenaLobby.getPlayerFromLobby(player);
         if (playerInLobby != null) {
             ArenaLobby.leaveArena(playerInLobby);
             ArenaLobby.leaveLobby(playerInLobby);
-            playerInLobby.resetPlayer();
+            foundArenaPlayer = playerInLobby;
         } else {
             ArenaPlayer cachedPlayer = ArenaDB.getPlayerManager().getCached(player.getUniqueId());
 
             if (cachedPlayer != null) {
-                cachedPlayer.resetPlayer();
+                foundArenaPlayer = cachedPlayer;
+            }
+        }
+
+        if (foundArenaPlayer != null) {
+            foundArenaPlayer.resetPlayer();
+            if (settings.getSaveMethod() == ArenaSettings.SaveMethod.DISCONNECT) {
+                ArenaDB.getPlayerManager().saveAsync(Collections.singleton(foundArenaPlayer));
             }
         }
     }
