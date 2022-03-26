@@ -73,6 +73,11 @@ options:
      #   - msg
      #   - arena
 
+    # When a player dies, should they be sent to the lobby?
+    # When false, players will immediately respawn in the arena, and will need
+    # to do "/arena leave" to leave the arena.
+    leave-on-death: true
+
     # The death message that appears when a player dies to another player
     kill-message-format: '%victim% was slain by %attacker%!'
     # The death message that appears when a player dies without being directly killed

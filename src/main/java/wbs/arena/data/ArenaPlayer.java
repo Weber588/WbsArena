@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import wbs.arena.ArenaLobby;
 import wbs.arena.ArenaSettings;
 import wbs.arena.WbsArena;
+import wbs.arena.arena.Arena;
 import wbs.arena.kit.Kit;
 import wbs.arena.kit.KitManager;
 import wbs.utils.util.database.RecordProducer;
@@ -164,8 +165,22 @@ public class ArenaPlayer implements RecordProducer {
         ArenaSettings settings = WbsArena.getInstance().settings;
         points -= settings.getDeathPoints();
 
+        deaths++;
+
         if (killer == null) {
             ArenaLobby.broadcastArena(settings.getDeathMessage(this), this);
+        }
+
+        if (settings.leaveOnDeath()) {
+            ArenaLobby.leaveArena(this);
+        } else {
+            Arena arena = ArenaLobby.getCurrentArena(this);
+
+            if (arena != null) {
+                arena.respawn(this);
+            } else {
+                WbsArena.getInstance().logger.warning("onDeath called while player was outside arena. Please report this issue.");
+            }
         }
     }
 
@@ -175,6 +190,8 @@ public class ArenaPlayer implements RecordProducer {
 
         int killPoints = settings.getKillPoints();
         points += killPoints;
+
+        kills++;
 
         String pointsMessage = null;
         if (killPoints > 1) {

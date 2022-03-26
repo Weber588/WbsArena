@@ -133,6 +133,8 @@ public class ArenaSettings extends WbsSettings {
 
             deleteProjectilesOnDeath = arenaSection.getBoolean("delete-projectiles-on-death", deleteProjectilesOnDeath);
             deleteTridentsOnDeath = arenaSection.getBoolean("delete-tridents-on-death", deleteTridentsOnDeath);
+
+            leaveOnDeath = arenaSection.getBoolean("leave-on-death", leaveOnDeath);
         }
     }
 
@@ -268,6 +270,11 @@ public class ArenaSettings extends WbsSettings {
     private boolean preventDropsInArena = false;
     public boolean preventDropsInArena() {
         return preventDropsInArena;
+    }
+
+    private boolean leaveOnDeath = true;
+    public boolean leaveOnDeath() {
+        return leaveOnDeath;
     }
 
     private final List<EntityDamageEvent.DamageCause> damageIgnoredInArena = new LinkedList<>();

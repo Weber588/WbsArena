@@ -21,25 +21,22 @@ import java.util.Map;
 public final class ArenaLobby {
     private ArenaLobby() {}
 
-    private static final Map<ArenaPlayer, SavedPlayerState<Player>> playersInLobby = new HashMap<>();
+    private static final Map<ArenaPlayer, SavedPlayerState> playersInLobby = new HashMap<>();
     private static final Map<ArenaPlayer, Arena> currentArenas = new HashMap<>();
 
-    private static SavedPlayerState<Player> lobbyState;
+    private static SavedPlayerState lobbyState;
 
     @NotNull
-    public static SavedPlayerState<Player> getLobbyState() {
+    public static SavedPlayerState getLobbyState() {
         if (lobbyState == null) {
-            lobbyState = new SavedPlayerState<>();
+            lobbyState = new SavedPlayerState();
 
             // TODO: Build lobby inventory with hotkey items
             lobbyState.track(new InventoryState(new ItemStack[0], 0));
-
             lobbyState.track(new LocationState(WbsArena.getInstance().settings.getLobbyLocation()));
+            lobbyState.track(new GameModeState(GameMode.ADVENTURE));
 
-            lobbyState.track(new HealthState())
-                    .track(new HungerState())
-                    .track(new SaturationState())
-                    .track(new GameModeState(GameMode.ADVENTURE));
+            lobbyState.trackAll();
         }
 
         return lobbyState;
@@ -56,7 +53,7 @@ public final class ArenaLobby {
             return false;
         }
 
-        SavedPlayerState<Player> playerState = new SavedPlayerState<>();
+        SavedPlayerState playerState = new SavedPlayerState();
         playerState.trackAll();
 
         playerState.captureState(player.getPlayer());
@@ -77,7 +74,7 @@ public final class ArenaLobby {
             return false;
         }
 
-        SavedPlayerState<Player> playerState = playersInLobby.get(player);
+        SavedPlayerState playerState = playersInLobby.get(player);
         playersInLobby.remove(player);
 
         playerState.restoreState(player.getPlayer());
@@ -172,7 +169,7 @@ public final class ArenaLobby {
     }
 
     public static void clear() {
-        Map<ArenaPlayer, SavedPlayerState<Player>> playersInLobby = new HashMap<>(ArenaLobby.playersInLobby);
+        Map<ArenaPlayer, SavedPlayerState> playersInLobby = new HashMap<>(ArenaLobby.playersInLobby);
         Map<ArenaPlayer, Arena> currentArenas = new HashMap<>(ArenaLobby.currentArenas);
 
         for (ArenaPlayer player : currentArenas.keySet()) {

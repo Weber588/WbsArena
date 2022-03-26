@@ -77,10 +77,10 @@ public class Arena {
         spawnpoints.add(loc);
     }
 
-    private static SavedPlayerState<Player> respawnState;
-    private static SavedPlayerState<Player> getRespawnState() {
+    private static SavedPlayerState respawnState;
+    private static SavedPlayerState getRespawnState() {
         if (respawnState == null) {
-            respawnState = new SavedPlayerState<>();
+            respawnState = new SavedPlayerState();
             respawnState.track(new HungerState())
                     .track(new SaturationState())
                     .track(new HealthState())

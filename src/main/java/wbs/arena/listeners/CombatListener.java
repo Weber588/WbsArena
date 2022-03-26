@@ -103,12 +103,6 @@ public class CombatListener implements Listener {
                 if (attackerInArena != null) {
                     attackerInArena.onKill(victim);
                 }
-
-                Arena arena = ArenaLobby.getCurrentArena(victim);
-
-                if (arena != null) {
-                    arena.respawn(victim);
-                }
             }
         }
     }
