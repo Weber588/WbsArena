@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import wbs.arena.ArenaLobby;
 import wbs.arena.ArenaSettings;
 import wbs.arena.WbsArena;
+import wbs.arena.data.ArenaDB;
 import wbs.arena.data.ArenaPlayer;
 
 @SuppressWarnings("unused")
@@ -26,6 +27,13 @@ public class MiscListener implements Listener {
         if (playerInLobby != null) {
             ArenaLobby.leaveArena(playerInLobby);
             ArenaLobby.leaveLobby(playerInLobby);
+            playerInLobby.resetPlayer();
+        } else {
+            ArenaPlayer cachedPlayer = ArenaDB.getPlayerManager().getCached(player.getUniqueId());
+
+            if (cachedPlayer != null) {
+                cachedPlayer.resetPlayer();
+            }
         }
     }
 

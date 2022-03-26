@@ -104,6 +104,14 @@ public class ArenaPlayer implements RecordProducer {
         this.kit = kit;
     }
 
+    /**
+     * Forces the next {@link #getPlayer()} to retrieve a new player entity
+     * with {@link Bukkit#getPlayer(UUID)}
+     */
+    public void resetPlayer() {
+        player = null;
+    }
+
     public Player getPlayer() {
         // If player is null, or if the player isn't online, get player (they might be online,
         // but if they relog the player entity stored is out of date and needs updating).
