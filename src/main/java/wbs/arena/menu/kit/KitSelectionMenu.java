@@ -8,17 +8,18 @@ import wbs.arena.kit.KitManager;
 import wbs.arena.menu.PlayerSpecificMenu;
 import wbs.utils.util.menus.MenuSlot;
 
-public class KitSelectionMenu extends PlayerSpecificMenu {
-    public KitSelectionMenu(WbsArena plugin, ArenaPlayer player) {
-        super(plugin, player, "&9&lKits", 6, "kitselection");
+public class KitSelectionMenu extends KitMenu {
+    public KitSelectionMenu(WbsArena plugin, ArenaPlayer player, int page) {
+        super(plugin, player, "&9&lKits", "kitselection", page);
+    }
 
-        MenuSlot outlineSlot = new MenuSlot(plugin, Material.BLUE_STAINED_GLASS_PANE, "&r");
-        setOutline(outlineSlot);
+    @Override
+    protected MenuSlot getSlotFor(WbsArena plugin, ArenaPlayer player, Kit kit) {
+        return new KitSelectSlot(plugin, player, kit);
+    }
 
-        for (Kit kit : KitManager.getAllKits().values()) {
-            KitSelectSlot slot = new KitSelectSlot(plugin, player, kit);
-
-            setNextFreeSlot(1, 4, 1, 7, slot);
-        }
+    @Override
+    protected KitMenu getPage(WbsArena plugin, ArenaPlayer player, int page) {
+        return new KitSelectionMenu(plugin, player, page);
     }
 }

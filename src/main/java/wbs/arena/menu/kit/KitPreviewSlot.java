@@ -58,7 +58,7 @@ public class KitPreviewSlot extends MenuSlot {
         assert meta != null; // Validated this in kit constructor
 
         if (this.player.canUse(kit)) {
-            lore.add("&6Owned.");
+            lore.add("&6Owned!");
         } else {
             lore.add(kit.getFormattedCostLine());
         }

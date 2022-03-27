@@ -65,7 +65,7 @@ public class KitPreviewCommand extends KitSubcommand {
     }
 
     private void openPreviewMenu(ArenaPlayer player) {
-        KitPreviewMenu previewMenu = new KitPreviewMenu(plugin, player);
+        KitPreviewMenu previewMenu = new KitPreviewMenu(plugin, player, 0);
 
         previewMenu.showTo(player.getPlayer());
     }

@@ -15,9 +15,7 @@ import wbs.arena.menu.kit.KitSelectionMenu;
 import wbs.utils.util.WbsEnums;
 import wbs.utils.util.entities.state.SavedEntityState;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class KitManager {
     private KitManager() {}
@@ -25,6 +23,27 @@ public final class KitManager {
     private static final Map<String, Kit> kits = new HashMap<>();
 
     public static void addKit(Kit kit) {
+        int order = kit.getOrder();
+
+        // Find first order that isn't filled by another kit
+        int newOrder = 0;
+        while (order == -1) {
+            boolean orderExists = false;
+            for (Kit existingKit : kits.values()) {
+                if (existingKit.getOrder() == newOrder) {
+                    orderExists = true;
+                    break;
+                }
+            }
+            if (!orderExists) {
+                order = newOrder;
+            } else {
+                newOrder++;
+            }
+        }
+
+        kit.setOrder(order);
+
         kits.put(kit.getName().toLowerCase(), kit);
     }
 
@@ -34,7 +53,17 @@ public final class KitManager {
     }
 
     public static Map<String, Kit> getAllKits() {
-        return new HashMap<>(kits);
+        LinkedHashMap<String, Kit> toReturn = new LinkedHashMap<>();
+
+        List<Kit> sorted = new LinkedList<>(kits.values());
+
+        sorted.sort(Comparator.comparing(Kit::getOrder));
+
+        for (Kit entry : sorted) {
+            toReturn.put(entry.getName(), entry);
+        }
+
+        return toReturn;
     }
 
     @NotNull
@@ -46,6 +75,7 @@ public final class KitManager {
         int cost = specs.getInt("cost", 10);
         List<String> description = specs.getStringList("description");
         Material displayItem = WbsEnums.materialFromString(specs.getString("display-item"), Material.BARRIER);
+        int order = specs.getInt("order", -1);
 
         SavedEntityState<Player> playerState;
         try {
@@ -69,12 +99,13 @@ public final class KitManager {
         kit.setOwnedByDefault(ownedByDefault);
         kit.setCost(cost);
         kit.setDisplayMaterial(displayItem);
+        kit.setOrder(order);
 
         return kit;
     }
 
     public static void openKitSelection(ArenaPlayer player) {
-        KitSelectionMenu menu = new KitSelectionMenu(WbsArena.getInstance(), player);
+        KitSelectionMenu menu = new KitSelectionMenu(WbsArena.getInstance(), player, 0);
 
         menu.showTo(player.getPlayer());
     }
@@ -112,5 +143,9 @@ public final class KitManager {
 
     public static void removeKit(Kit kit) {
         kits.remove(kit.getName());
+    }
+
+    public static void clear() {
+        kits.clear();
     }
 }

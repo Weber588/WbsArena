@@ -1,9 +1,10 @@
 display-name: '&cFighter'
 owned-by-default: true
 description:
-  - 'A melee default kit.'
+  - 'A default melee kit.'
 display-item: stone_sword
 cost: 0
+order: 0
 
 player-state:
   ==: wbs.utils.util.entities.state.SavedEntityState

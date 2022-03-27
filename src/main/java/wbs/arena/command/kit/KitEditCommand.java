@@ -25,7 +25,7 @@ public class KitEditCommand extends KitSubcommand {
     }
 
     private enum EditOption {
-        NAME, DESCRIPTION, COST, ITEM, DEFAULT
+        NAME, DESCRIPTION, COST, ITEM, DEFAULT, ORDER
     }
 
     @Override
@@ -81,6 +81,16 @@ public class KitEditCommand extends KitSubcommand {
                 boolean isDefault = Boolean.getBoolean(value);
                 kit.setOwnedByDefault(isDefault);
             }
+            case ORDER -> {
+                int newOrder;
+                try {
+                    newOrder = Integer.parseInt(value);
+                } catch (NumberFormatException e) {
+                    sendMessage("Invalid number: " + value, sender);
+                    return true;
+                }
+                kit.setOrder(newOrder);
+            }
         }
 
         plugin.settings.saveKitAsync(kit, success -> {
@@ -96,17 +106,38 @@ public class KitEditCommand extends KitSubcommand {
 
     @Override
     protected List<String> getTabCompletions(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args, int start) {
-        List<String> options = new LinkedList<>();
+        List<String> choices = new LinkedList<>();
 
         switch (args.length - start + 1) {
-            case 1 -> options.addAll(KitManager.getAllKits().keySet());
-            case 2 -> options.addAll(
+            case 1 -> choices.addAll(KitManager.getAllKits().keySet());
+            case 2 -> choices.addAll(
                     Arrays.stream(EditOption.values())
                             .map(option -> option.toString().toLowerCase())
                             .collect(Collectors.toList())
-            );
+                );
+            case 3 -> {
+                EditOption option = WbsEnums.getEnumFromString(EditOption.class, args[1]);
+                if (option != null) {
+                    switch (option) {
+                        case ITEM -> Arrays.stream(Material.values())
+                                .map(Enum::toString)
+                                .map(String::toLowerCase)
+                                .forEach(choices::add);
+                        case DEFAULT -> {
+                            choices.add("true");
+                            choices.add("false");
+                        }
+                        case ORDER -> {
+                            int kitCount = KitManager.getAllKits().size();
+                            for (int i = 0; i < kitCount; i++) {
+                                choices.add(i + "");
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        return options;
+        return choices;
     }
 }

@@ -39,6 +39,8 @@ public class Kit {
     @NotNull
     private List<String> description;
 
+    private int order = -1;
+
     @NotNull
     private Material displayMaterial = Material.BARRIER;
     private boolean ownedByDefault;
@@ -134,6 +136,14 @@ public class Kit {
         this.cost = cost;
     }
 
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
     public String getFormattedCostLine(String displayColour, String valueColour) {
         KitUnlockMethod method = WbsArena.getInstance().settings.getUnlockMethod();
         return displayColour + WbsStrings.capitalizeAll(method.getCostName()) + ": " + valueColour + method.formatCost(this);
@@ -185,6 +195,7 @@ public class Kit {
         config.set("description", description);
         config.set("display-item", displayMaterial.toString());
         config.set("player-state", playerState);
+        config.set("order", order);
 
         return config;
     }

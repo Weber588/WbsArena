@@ -438,6 +438,8 @@ public class ArenaSettings extends WbsSettings {
             }
         }
 
+        KitManager.clear();
+
         int errorsBefore = errors.size();
 
         if (firstLoad) {

@@ -1,9 +1,10 @@
 display-name: '&cRanger'
 owned-by-default: true
 description:
-  - 'A ranged default kit.'
+  - 'A default ranged kit.'
 display-item: bow
 cost: 10
+order: 1
 
 player-state:
   ==: wbs.utils.util.entities.state.SavedEntityState
