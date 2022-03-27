@@ -9,8 +9,17 @@ import wbs.arena.menu.PlayerSpecificMenu;
 import wbs.utils.util.menus.MenuSlot;
 
 public class KitSelectionMenu extends KitMenu {
+
+    public static final int RANDOM_KIT_SLOT_NUM = 8;
+
     public KitSelectionMenu(WbsArena plugin, ArenaPlayer player, int page) {
         super(plugin, player, "&9&lKits", "kitselection", page);
+
+        if (plugin.settings.allowRandomKit()) {
+            RandomKitSelectSlot randomKitSlot = new RandomKitSelectSlot(plugin, player);
+
+            setSlot(RANDOM_KIT_SLOT_NUM, randomKitSlot);
+        }
     }
 
     @Override

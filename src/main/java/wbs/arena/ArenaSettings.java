@@ -86,6 +86,8 @@ public class ArenaSettings extends WbsSettings {
                 unlockMethod = KitUnlockMethod.getMethod(PointThresholdUnlockMethod.POINT_THRESHOLD_ID);
             }
 
+            allowRandomKit = options.getBoolean("allow-random-kit", allowRandomKit);
+
             leaderboardRefreshRate = (int)
                     (options.getDouble("leaderboard-refresh-rate", leaderboardRefreshRate / (20.0 * 60.0)) * 20.0 * 60.0);
 
@@ -258,6 +260,11 @@ public class ArenaSettings extends WbsSettings {
     private KitUnlockMethod unlockMethod;
     public KitUnlockMethod getUnlockMethod() {
         return unlockMethod;
+    }
+
+    private boolean allowRandomKit = true;
+    public boolean allowRandomKit() {
+        return allowRandomKit;
     }
 
     private int combatTagDuration = DEFAULT_COMBAT_TAG_DURATION;

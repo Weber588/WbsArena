@@ -34,6 +34,7 @@ public class ArenaDB {
     public static final WbsField pointsField = new WbsField("points", WbsFieldType.INT, 0);
     public static final WbsField deathsField = new WbsField("deaths", WbsFieldType.INT, 0);
     public static final WbsField kitField = new WbsField("kit", WbsFieldType.STRING);
+    public static final WbsField randomKitField = new WbsField("randomize_kits", WbsFieldType.BOOLEAN);
 
     public static void setupDatabase() {
         plugin = WbsArena.getInstance();
@@ -47,7 +48,8 @@ public class ArenaDB {
                 killsField,
                 deathsField,
                 pointsField,
-                kitField
+                kitField,
+                randomKitField
         );
 
         database.addTable(playerTable);
@@ -66,6 +68,6 @@ public class ArenaDB {
      * Add new fields added after the initial run.
      */
     private static void addNewFields() {
-    //    playerTable.addFieldIfNotExists(shootSoundField);
+
     }
 }

@@ -95,6 +95,9 @@ public class Arena {
     }
 
     public void respawn(ArenaPlayer player) {
+        if (player.randomKitEnabled()) {
+            player.chooseRandomKit();
+        }
         Kit kit = player.getCurrentKit();
         kit.giveTo(player);
 

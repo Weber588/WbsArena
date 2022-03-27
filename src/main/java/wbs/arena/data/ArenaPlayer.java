@@ -34,6 +34,7 @@ public class ArenaPlayer implements RecordProducer {
     private boolean pendingSave = false;
 
     private Kit kit;
+    private boolean randomKitEnabled;
 
     public ArenaPlayer(UUID uuid) {
         this.uuid = uuid;
@@ -57,9 +58,12 @@ public class ArenaPlayer implements RecordProducer {
         kills = record.getOrDefault(ArenaDB.killsField, Integer.class);
         deaths = record.getOrDefault(ArenaDB.deathsField, Integer.class);
         points = record.getOrDefault(ArenaDB.pointsField, Integer.class);
+        randomKitEnabled = record.getOrDefault(ArenaDB.randomKitField, Boolean.class);
 
         String kitName = record.getOrDefault(ArenaDB.kitField, String.class);
-    //    kit = KitManager.getKit(kitName);
+        if (kitName != null) {
+            kit = KitManager.getKit(kitName);
+        }
         if (kit == null) {
             chooseRandomKit();
         }
@@ -106,6 +110,10 @@ public class ArenaPlayer implements RecordProducer {
     public void setKit(@NotNull Kit kit) {
         this.kit = kit;
         markAsPendingSave();
+    }
+
+    public void setRandomKitEnabled(boolean randomKitEnabled) {
+        this.randomKitEnabled = randomKitEnabled;
     }
 
     /**
@@ -194,6 +202,7 @@ public class ArenaPlayer implements RecordProducer {
         record.setField(ArenaDB.pointsField, points);
 
         record.setField(ArenaDB.kitField, kit.getName());
+        record.setField(ArenaDB.randomKitField, randomKitEnabled);
 
         return record;
     }
@@ -276,5 +285,9 @@ public class ArenaPlayer implements RecordProducer {
 
     public void setPendingSave(boolean pendingSave) {
         this.pendingSave = pendingSave;
+    }
+
+    public boolean randomKitEnabled() {
+        return randomKitEnabled;
     }
 }

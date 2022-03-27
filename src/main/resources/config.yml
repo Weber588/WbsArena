@@ -25,6 +25,12 @@ options:
   #   Kit permissions take the form "wbsarena.kit.owned.[name]".
   kit-unlock-method: POINT_THRESHOLD
 
+  # Should the player be able to pick to randomize their kit?
+  # When enabled, the kit selection menu adds an option to randomize their kit,
+  # which causes their kit to switch to a random one they have access to every time
+  # they join the arena.
+  allow-random-kit: true
+
   # When should player data be saved? Options are:
   # INSTANT (Player data saves as soon as they die, get a kill, or spend points)
   # PERIODIC (Player data is saved intermittently, at a frequency determined by save-frequency (below))

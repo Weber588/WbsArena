@@ -45,6 +45,10 @@ public class KitSelectSlot extends MenuSlot {
     private void onClick(WbsMenu menu, InventoryClickEvent e) {
         if (player.canUse(kit)) {
             player.setKit(kit);
+            if (player.randomKitEnabled()) {
+                menu.update(KitSelectionMenu.RANDOM_KIT_SLOT_NUM);
+                player.setRandomKitEnabled(false);
+            }
             player.sendMessage("&hKit updated!");
             menu.update();
         } else {

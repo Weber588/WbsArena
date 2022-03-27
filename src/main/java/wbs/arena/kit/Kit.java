@@ -165,6 +165,7 @@ public class Kit {
         infoDisplay.add(getFormattedCostLine("&6", "&r"));
         infoDisplay.add("&6Display item: &r" +
                 WbsEnums.toPrettyString(getDisplayMaterial()));
+        infoDisplay.add("&6Order: &r" + getOrder());
         if (player != null) {
             infoDisplay.add("&6Owned? &r" + formatBoolean(KitManager.canUse(player, this)));
         }
