@@ -8,7 +8,6 @@ import org.bukkit.projectiles.ProjectileSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import wbs.arena.data.ArenaPlayer;
-import wbs.arena.listeners.CombatListener;
 
 import java.lang.ref.WeakReference;
 import java.time.Duration;
@@ -87,7 +86,7 @@ public class CombatManager {
         }
 
         public boolean isValid() {
-            return Duration.between(timestamp, null).toMillis() / 50 > WbsArena.getInstance().settings.getCombatTagDuration();
+            return Duration.between(timestamp, Instant.now()).toMillis() / 50 < WbsArena.getInstance().settings.getCombatTagDuration();
         }
 
         public ArenaPlayer getAttacker() {

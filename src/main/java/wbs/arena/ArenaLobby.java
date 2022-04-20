@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import wbs.arena.arena.Arena;
 import wbs.arena.data.ArenaPlayer;
-import wbs.arena.kit.Kit;
+import wbs.utils.util.WbsScoreboard;
 import wbs.utils.util.entities.state.SavedPlayerState;
 import wbs.utils.util.entities.state.tracker.*;
 
@@ -61,6 +61,8 @@ public final class ArenaLobby {
 
         getLobbyState().restoreState(player.getPlayer());
 
+        player.showScoreboard();
+
         return true;
     }
 
@@ -76,6 +78,8 @@ public final class ArenaLobby {
 
         SavedPlayerState playerState = playersInLobby.get(player);
         playersInLobby.remove(player);
+
+        player.hideScoreboard();
 
         playerState.restoreState(player.getPlayer());
 
@@ -109,6 +113,7 @@ public final class ArenaLobby {
         }
 
         getLobbyState().restoreState(player.getPlayer());
+        player.resetKillstreak();
 
         currentArenas.remove(player);
         return true;
@@ -145,10 +150,6 @@ public final class ArenaLobby {
         }
 
         return null;
-    }
-
-    public static void broadcastLobby(String message) {
-
     }
 
     public static boolean broadcastArena(String message, ArenaPlayer player) {

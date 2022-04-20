@@ -186,8 +186,30 @@ public class ArenaSettings extends WbsSettings {
 
                     Material material = WbsEnums.materialFromString(itemKey);
                     if (material == null) {
-                        logError("Invalid item: " + itemKey, itemDirectory + "/");
+                        logError("Invalid item: " + itemKey, itemDirectory + "/" + itemKey);
+                        continue;
                     }
+
+                    String amountString = itemsSection.getString(itemKey);
+                    if (amountString == null) {
+                        logError("An unknown error occurred - invalid key \"" + itemKey + "\"", itemDirectory + "/" + itemKey);
+                        continue;
+                    }
+
+                    int amount;
+                    try {
+                        amount = Integer.parseInt(amountString);
+                    } catch (NumberFormatException e) {
+                        logError("Invalid amount \"" + amountString + "\"; use an integer.", itemDirectory + "/" + itemKey);
+                        continue;
+                    }
+
+                    if (amount < 1) {
+                        logError("Amount must be at least 1 (\"" + amountString + "\").", itemDirectory + "/" + itemKey);
+                        continue;
+                    }
+
+                    killRewards.add(new ItemStack(material, amount));
                 }
             }
 
@@ -216,6 +238,10 @@ public class ArenaSettings extends WbsSettings {
 
                     killPotionRewards.add(effect);
                 }
+            }
+
+            if (!killPotionRewards.isEmpty() && !killRewards.isEmpty()) {
+                logger.info("Kill reward items loaded with " + killRewards.size() + " items and " + killPotionRewards.size() + " potion effects.");
             }
         }
     }
@@ -369,7 +395,7 @@ public class ArenaSettings extends WbsSettings {
 
     private String killFormat = "%victim% was slain by %attacker%!";
     public String getKillMessage(@NotNull ArenaPlayer attacker, @NotNull ArenaPlayer victim) {
-        return killFormat.replace("%attacker", attacker.getName())
+        return killFormat.replace("%attacker%", attacker.getName())
                 .replace("%victim%", victim.getName());
     }
 

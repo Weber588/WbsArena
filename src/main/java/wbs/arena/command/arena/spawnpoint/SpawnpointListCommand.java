@@ -21,14 +21,14 @@ public class SpawnpointListCommand extends ArenaSubcommand {
                     Math.round(spawnpoint.getY()) + ", " +
                     Math.round(spawnpoint.getZ());
 
-            plugin.buildMessage("&b" + locString, sender)
+            plugin.buildMessage("&b" + locString)
                     .append(" &6&l[TP]")
                         .addClickCommand("/wbsarena spawnpoint tp " + arena.getName() + " -h " + spawnpoint.hashCode())
                         .addHoverText("&7Click to tp!")
                     .append(" &4&l[DELETE]")
                         .addClickCommand("/wbsarena spawnpoint remove " + arena.getName() + " -h " + spawnpoint.hashCode())
                         .addHoverText("&cClick to delete!")
-                    .send();
+                    .send(sender);
         }
 
         return true;

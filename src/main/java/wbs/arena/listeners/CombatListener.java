@@ -40,6 +40,7 @@ public class CombatListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player victim) {
             if (event.getDamager() instanceof Player attacker) {
@@ -53,6 +54,9 @@ public class CombatListener implements Listener {
     }
 
     private void handleDamage(EntityDamageEvent event, @NotNull Player victim, @Nullable Player attacker) {
+        if (victim == attacker) {
+            return;
+        }
         if (settings.preventDamageInArena(event.getCause())) {
             event.setCancelled(true);
             return;

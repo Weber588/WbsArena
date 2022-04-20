@@ -5,7 +5,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import wbs.arena.ArenaLobby;
@@ -14,11 +13,12 @@ import wbs.arena.WbsArena;
 import wbs.arena.arena.Arena;
 import wbs.arena.kit.Kit;
 import wbs.arena.kit.KitManager;
+import wbs.utils.util.WbsMath;
+import wbs.utils.util.WbsScoreboard;
 import wbs.utils.util.database.RecordProducer;
 import wbs.utils.util.database.WbsRecord;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 public class ArenaPlayer implements RecordProducer {
 
@@ -31,10 +31,15 @@ public class ArenaPlayer implements RecordProducer {
     private int deaths = 0;
     private int points = 0;
 
+    private int currentKillstreak = 0;
+    private int highestKillstreak = 0;
+
     private boolean pendingSave = false;
 
     private Kit kit;
     private boolean randomKitEnabled;
+
+    private WbsScoreboard statsScoreboard;
 
     public ArenaPlayer(UUID uuid) {
         this.uuid = uuid;
@@ -48,16 +53,14 @@ public class ArenaPlayer implements RecordProducer {
 
     public ArenaPlayer(WbsRecord record) {
         uuid = UUID.fromString(record.getValue(ArenaDB.uuidField, String.class));
+        name = record.getValue(ArenaDB.nameField, String.class);
 
         tryGetPlayer();
-
-        if (name == null) {
-            name = record.getValue(ArenaDB.nameField, String.class);
-        }
 
         kills = record.getOrDefault(ArenaDB.killsField, Integer.class);
         deaths = record.getOrDefault(ArenaDB.deathsField, Integer.class);
         points = record.getOrDefault(ArenaDB.pointsField, Integer.class);
+        highestKillstreak = record.getOrDefault(ArenaDB.highestKillstreakField, Integer.class);
         randomKitEnabled = record.getOrDefault(ArenaDB.randomKitField, Boolean.class);
 
         String kitName = record.getOrDefault(ArenaDB.kitField, String.class);
@@ -145,7 +148,7 @@ public class ArenaPlayer implements RecordProducer {
         return kills;
     }
 
-    public int addKill() {
+    private int addKill() {
         markAsPendingSave();
         return ++kills;
     }
@@ -154,7 +157,7 @@ public class ArenaPlayer implements RecordProducer {
         return deaths;
     }
 
-    public int addDeath() {
+    private int addDeath() {
         markAsPendingSave();
         return ++deaths;
     }
@@ -178,6 +181,14 @@ public class ArenaPlayer implements RecordProducer {
         }
     }
 
+    public int getCurrentKillstreak() {
+        return currentKillstreak;
+    }
+
+    public int getHighestKillstreak() {
+        return highestKillstreak;
+    }
+
     public void sendMessage(String message) {
         if (player.isOnline()) {
             WbsArena.getInstance().sendMessage(message, getPlayer());
@@ -188,6 +199,19 @@ public class ArenaPlayer implements RecordProducer {
         if (player.isOnline()) {
             WbsArena.getInstance().sendMessageNoPrefix(message, getPlayer());
         }
+    }
+
+    public List<String> getStatsStrings() {
+        List<String> strings = new LinkedList<>();
+
+        strings.add("&rPoints: &h" + getPoints());
+        strings.add("&rKills: &h" + getKills());
+        strings.add("&rDeaths: &h" + getDeaths());
+        strings.add("&rK/D: &h" + WbsMath.roundTo(getKills() / (double) getDeaths(), 2));
+        strings.add("&rCurrent Killstreak: &h" + getCurrentKillstreak());
+        strings.add("&rHighest Killstreak: &h" + getHighestKillstreak());
+
+        return strings;
     }
 
     @Override
@@ -201,6 +225,8 @@ public class ArenaPlayer implements RecordProducer {
         record.setField(ArenaDB.deathsField, deaths);
         record.setField(ArenaDB.pointsField, points);
 
+        record.setField(ArenaDB.highestKillstreakField, highestKillstreak);
+
         record.setField(ArenaDB.kitField, kit.getName());
         record.setField(ArenaDB.randomKitField, randomKitEnabled);
 
@@ -210,8 +236,11 @@ public class ArenaPlayer implements RecordProducer {
     public void onDeath(@Nullable ArenaPlayer killer) {
         ArenaSettings settings = WbsArena.getInstance().settings;
 
+        resetKillstreak();
         removePoints(settings.getDeathPoints());
         addDeath();
+
+        getPlayer().setArrowsInBody(0);
 
         if (killer == null) {
             ArenaLobby.broadcastArena(settings.getDeathMessage(this), this);
@@ -228,12 +257,16 @@ public class ArenaPlayer implements RecordProducer {
                 WbsArena.getInstance().logger.warning("onDeath called while player was outside arena. Please report this issue.");
             }
         }
+
+        refreshScoreboard();
     }
 
     public void onKill(@NotNull ArenaPlayer victim) {
         WbsArena plugin = WbsArena.getInstance();
         ArenaSettings settings = plugin.settings;
 
+        currentKillstreak++;
+        highestKillstreak = Math.max(currentKillstreak, highestKillstreak);
         int killPoints = settings.getKillPoints();
         addPoints(killPoints);
         addKill();
@@ -253,6 +286,8 @@ public class ArenaPlayer implements RecordProducer {
 
         giveItemSafely(getPlayer(), settings.getKillRewards().toArray(new ItemStack[0]));
         getPlayer().addPotionEffects(settings.getKillPotionRewards());
+
+        refreshScoreboard();
     }
 
     private static void giveItemSafely(Player player, ItemStack ... itemStacks) {
@@ -289,5 +324,52 @@ public class ArenaPlayer implements RecordProducer {
 
     public boolean randomKitEnabled() {
         return randomKitEnabled;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public void resetKillstreak() {
+        currentKillstreak = 0;
+    }
+
+    private static final String BORDER = "&h==================";
+    private void loadScoreboard() {
+        String namespace = getPlayer().getUniqueId().toString();
+        namespace = namespace.substring(namespace.length() - 16);
+
+        statsScoreboard = new WbsScoreboard(WbsArena.getInstance(), namespace, WbsArena.getInstance().prefix);
+    }
+
+    public void refreshScoreboard() {
+        if (statsScoreboard == null) {
+            loadScoreboard();
+        }
+        statsScoreboard.clear();
+
+        statsScoreboard.addLine(BORDER);
+        statsScoreboard.addLine("");
+        statsScoreboard.addLine("&rKit: &h" + getCurrentKit().getDisplayName());
+        statsScoreboard.addLine("&r");
+
+        for (String line : getStatsStrings()) {
+            statsScoreboard.addLine(line);
+        }
+
+        statsScoreboard.addLine("&r&r");
+        statsScoreboard.addLine(BORDER + "&r");
+    }
+
+    public void showScoreboard() {
+        refreshScoreboard();
+        statsScoreboard.showToPlayer(getPlayer());
+    }
+
+    public void hideScoreboard() {
+        if (statsScoreboard.isBeingViewedBy(getPlayer())) {
+            getPlayer().setScoreboard(Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard());
+        }
     }
 }

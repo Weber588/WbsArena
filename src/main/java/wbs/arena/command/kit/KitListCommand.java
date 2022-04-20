@@ -41,10 +41,10 @@ public class KitListCommand extends WbsSubcommand {
             List<String> infoLines = kit.getInfoDisplay(player);
             String hoverText = String.join("\n", infoLines);
 
-            plugin.buildMessage(display, sender)
+            plugin.buildMessage(display)
                     .addHoverText(hoverText)
                     .addClickCommandSuggestion("/wbsarena kit info " + kit.getName())
-                    .send();
+                    .send(sender);
         }
     }
 }

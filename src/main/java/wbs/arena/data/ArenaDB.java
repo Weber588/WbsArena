@@ -35,13 +35,14 @@ public class ArenaDB {
     public static final WbsField deathsField = new WbsField("deaths", WbsFieldType.INT, 0);
     public static final WbsField kitField = new WbsField("kit", WbsFieldType.STRING);
     public static final WbsField randomKitField = new WbsField("randomize_kits", WbsFieldType.BOOLEAN);
+    public static final WbsField highestKillstreakField = new WbsField("highest_killstreak", WbsFieldType.INT, 0);
 
     public static void setupDatabase() {
         plugin = WbsArena.getInstance();
         database = new WbsDatabase(plugin, "arena");
 
         playerTable = new WbsTable(database, "players", uuidField);
-        playerTable.setDebugMode(true);
+    //    playerTable.setDebugMode(true);
         playerTable.addField(
                 nameField,
 
@@ -68,6 +69,6 @@ public class ArenaDB {
      * Add new fields added after the initial run.
      */
     private static void addNewFields() {
-
+        playerTable.addFieldIfNotExists(highestKillstreakField);
     }
 }

@@ -39,10 +39,10 @@ public class KitInfoCommand extends KitSubcommand {
             sendMessageNoPrefix("    " + line, sender);
         }
 
-        plugin.buildMessage("To edit this kit, do &h" + editCommand, sender)
+        plugin.buildMessage("To edit this kit, do &h" + editCommand)
                 .addHoverText("&7Click to edit!")
                 .addClickCommandSuggestion(editCommand + " ")
-                .send();
+                .send(sender);
 
     }
 }

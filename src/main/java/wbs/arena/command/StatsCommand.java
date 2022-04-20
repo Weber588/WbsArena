@@ -26,8 +26,8 @@ public class StatsCommand extends WbsSubcommand {
     }
 
     private void showStats(ArenaPlayer arenaPlayer) {
-        arenaPlayer.sendMessage("Points: &h" + arenaPlayer.getPoints());
-        arenaPlayer.sendMessage("Kills: &h" + arenaPlayer.getKills());
-        arenaPlayer.sendMessage("Deaths: &h" + arenaPlayer.getDeaths());
+        for (String line : arenaPlayer.getStatsStrings()) {
+            arenaPlayer.sendMessage(line);
+        }
     }
 }
