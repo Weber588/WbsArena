@@ -83,7 +83,7 @@ public class Arena {
         if (respawnState == null) {
             respawnState = new SavedPlayerState();
             respawnState.track(new HungerState())
-                    .track(new SaturationState())
+                    .track(new SaturationState(4))
                     .track(new HealthState())
                     .track(new PotionEffectsState())
                     .track(new GameModeState(GameMode.ADVENTURE))
@@ -95,6 +95,7 @@ public class Arena {
     }
 
     public void respawn(ArenaPlayer player) {
+
         if (player.randomKitEnabled()) {
             player.chooseRandomKit();
         }
@@ -119,8 +120,12 @@ public class Arena {
         } else {
             player.sendMessage("No spawnpoints defined for arena " + getName() + "!");
         }
+        ScoreboardState scoreboardState = new ScoreboardState();
+        scoreboardState.captureState(player.getPlayer());
 
         getRespawnState().restoreState(player.getPlayer());
+
+        scoreboardState.restoreState(player.getPlayer());
     }
 
     public YamlConfiguration toConfig(YamlConfiguration config) {

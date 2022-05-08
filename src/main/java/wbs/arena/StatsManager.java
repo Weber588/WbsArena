@@ -37,14 +37,16 @@ public class StatsManager {
         }
     }
 
-    private static int topListSize = 25;
+    public static final int topListSize = 25;
 
     private static final Map<TrackedStat, List<ArenaPlayer>> stats = new HashMap<>();
 
     public static void recalculateAll() {
-        for (TrackedStat stat : TrackedStat.values()) {
-            recalculate(stat);
-        }
+        WbsArena.getInstance().runAsync(() -> {
+            for (TrackedStat stat : TrackedStat.values()) {
+                recalculate(stat);
+            }
+        });
     }
 
     public static List<ArenaPlayer> recalculate(TrackedStat stat) {
@@ -104,5 +106,9 @@ public class StatsManager {
                 () -> recalculate(stat),
                 () -> callback.accept(stats.get(stat))
         );
+    }
+
+    public static List<ArenaPlayer> getTopCached(TrackedStat stat) {
+        return stats.getOrDefault(stat, new LinkedList<>());
     }
 }

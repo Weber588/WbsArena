@@ -8,10 +8,9 @@ import wbs.arena.WbsArena;
 import wbs.utils.util.database.AbstractDataManager;
 import wbs.utils.util.database.WbsRecord;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public final class PlayerManager extends AbstractDataManager<ArenaPlayer, UUID> {
     private final WbsArena plugin;
@@ -66,5 +65,21 @@ public final class PlayerManager extends AbstractDataManager<ArenaPlayer, UUID> 
         if (plugin.settings.getSaveMethod() == ArenaSettings.SaveMethod.PERIODIC) {
             pendingSaves.add(arenaPlayer);
         }
+    }
+
+
+    @NotNull
+    public List<UUID> getUUIDs(String username) {
+        List<WbsRecord> records = ArenaDB.playerTable.selectOnField(ArenaDB.nameField, username);
+
+        return records.stream()
+                .map(record ->
+                        record.getValue(ArenaDB.uuidField, String.class))
+                .map(UUID::fromString)
+                .collect(Collectors.toList());
+    }
+
+    public void getUUIDsAsync(String username, Consumer<List<UUID>> callback) {
+        plugin.getAsync(() -> getUUIDs(username), callback);
     }
 }

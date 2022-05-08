@@ -23,6 +23,7 @@ public class ArenaCommand extends WbsCommand {
         addSubcommand(new ArenaReloadCommand(plugin), adminPermission + ".reload");
         addSubcommand(new ArenaErrorCommand(plugin), adminPermission + ".reload");
         addSubcommand(new SetLobbyCommand(plugin), adminPermission + ".setlobby");
+        addSubcommand(new PointsCommand(plugin), adminPermission + ".points");
 
         String arenaAdminPerm = ARENA_PERMISSION + ".admin";
         addSubcommand(new ArenaCreateCommand(plugin), arenaAdminPerm + ".create");

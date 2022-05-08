@@ -33,17 +33,31 @@ public class TopCommand extends WbsSubcommand {
             return true;
         }
 
-        StatsManager.getTopAsync(stat, (top) -> showTop(top, stat, sender));
+        int amount = 5;
+        if (args.length > 2) {
+            String amountString = args[1];
+
+            try {
+                amount = Integer.parseInt(amountString);
+            } catch (NumberFormatException e) {
+                sendMessage("Invalid amount: " + amountString + ". Use a number between 1 and " + StatsManager.topListSize + ".", sender);
+                return true;
+            }
+        }
+
+        int finalAmount = amount;
+        StatsManager.getTopAsync(stat, (top) -> showTop(top, finalAmount, stat, sender));
         return true;
     }
 
 
-    private void showTop(List<ArenaPlayer> top, StatsManager.TrackedStat stat, CommandSender sender) {
-        sendMessage("Top " + top.size() + " players (" + WbsEnums.toPrettyString(stat) + "):", sender);
+    private void showTop(List<ArenaPlayer> top, int amount, StatsManager.TrackedStat stat, CommandSender sender) {
+        sendMessage("Top " + Math.min(amount, top.size()) + " players (" + WbsEnums.toPrettyString(stat) + "):", sender);
 
         int i = 1;
         for (ArenaPlayer player : top) {
             sendMessage("&6" + (i++) + ") &h" + player.getName() + "&r> &h" + stat.of(player), sender);
+            if (i > amount) break;
         }
     }
 

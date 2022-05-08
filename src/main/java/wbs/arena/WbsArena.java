@@ -36,6 +36,9 @@ public class WbsArena extends WbsPlugin {
         registerListener(new CombatListener());
         registerListener(new MiscListener());
         registerListener(new CommandListener());
+
+        StatsManager.recalculateAll();
+        PlaceholderManager.registerPlaceholders();
     }
 
     @Override

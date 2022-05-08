@@ -244,6 +244,8 @@ public class ArenaPlayer implements RecordProducer {
 
         if (killer == null) {
             ArenaLobby.broadcastArena(settings.getDeathMessage(this), this);
+        } else {
+            ArenaLobby.broadcastArena(settings.getKillMessage(killer, this), this);
         }
 
         if (settings.leaveOnDeath()) {
@@ -281,8 +283,6 @@ public class ArenaPlayer implements RecordProducer {
         if (pointsMessage != null) {
             plugin.sendActionBar(pointsMessage, getPlayer());
         }
-
-        ArenaLobby.broadcastArena(settings.getKillMessage(this, victim), this);
 
         giveItemSafely(getPlayer(), settings.getKillRewards().toArray(new ItemStack[0]));
         getPlayer().addPotionEffects(settings.getKillPotionRewards());
