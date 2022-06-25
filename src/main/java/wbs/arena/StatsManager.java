@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 
 public class StatsManager {
     public enum TrackedStat {
-        KILLS, DEATHS, POINTS;
+        KILLS, DEATHS, POINTS, MAXKILLSTREAK;
 
         Instant lastRecalculation;
 
@@ -25,6 +25,7 @@ public class StatsManager {
                 case KILLS -> ArenaDB.killsField;
                 case DEATHS -> ArenaDB.deathsField;
                 case POINTS -> ArenaDB.pointsField;
+                case MAXKILLSTREAK -> ArenaDB.highestKillstreakField;
             };
         }
 
@@ -33,6 +34,7 @@ public class StatsManager {
                 case KILLS -> player.getKills();
                 case DEATHS -> player.getDeaths();
                 case POINTS -> player.getPoints();
+                case MAXKILLSTREAK -> player.getHighestKillstreak();
             };
         }
     }

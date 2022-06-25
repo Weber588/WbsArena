@@ -8,11 +8,13 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import wbs.arena.ArenaLobby;
 import wbs.arena.ArenaSettings;
 import wbs.arena.WbsArena;
 import wbs.arena.data.ArenaDB;
 import wbs.arena.data.ArenaPlayer;
+import wbs.arena.kit.PreviewManager;
 
 import java.util.Collections;
 
@@ -24,6 +26,8 @@ public class MiscListener implements Listener {
     @EventHandler
     public void onDisconnect(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+
+        PreviewManager.endPreview(player);
 
         ArenaPlayer foundArenaPlayer = null;
 
@@ -97,5 +101,10 @@ public class MiscListener implements Listener {
         if (player != null) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onTeleport(PlayerTeleportEvent event) {
+        PreviewManager.endPreview(event.getPlayer());
     }
 }

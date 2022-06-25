@@ -88,8 +88,12 @@ public class Arena {
                     .track(new PotionEffectsState())
                     .track(new GameModeState(GameMode.ADVENTURE))
                     .track(new FireTicksState());
+
+            respawnState.track(new AllowFlightState());
+            respawnState.track(new FlyingState());
+            respawnState.track(new InvulnerableState());
+            respawnState.track(new VelocityState());
         }
-        respawnState.trackAll();
 
         return respawnState;
     }
@@ -120,12 +124,7 @@ public class Arena {
         } else {
             player.sendMessage("No spawnpoints defined for arena " + getName() + "!");
         }
-        ScoreboardState scoreboardState = new ScoreboardState();
-        scoreboardState.captureState(player.getPlayer());
-
         getRespawnState().restoreState(player.getPlayer());
-
-        scoreboardState.restoreState(player.getPlayer());
     }
 
     public YamlConfiguration toConfig(YamlConfiguration config) {

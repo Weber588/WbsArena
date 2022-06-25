@@ -15,7 +15,11 @@ public final class PlaceholderManager {
     private static final String NOT_FOUND = "N/A";
 
     public static void registerPlaceholders() {
-        PlaceholderAPIWrapper.registerSimplePlaceholder(WbsArena.getInstance(), "Weber588", PlaceholderManager::parseParams);
+        if (PlaceholderAPIWrapper.isActive()) {
+            PlaceholderAPIWrapper.registerSimplePlaceholder(WbsArena.getInstance(), "Weber588", PlaceholderManager::parseParams);
+        } else {
+            WbsArena.getInstance().logger.info("PlaceholderAPI not found. Placeholders will not be used.");
+        }
     }
 
     private static String parseParams(OfflinePlayer player, String params) {
@@ -72,6 +76,8 @@ public final class PlaceholderManager {
         DEATHS,
         KD,
         POINTS,
+        KILLSTREAK,
+        MAXKILLSTREAK,
         ;
 
         public String getProperty(ArenaPlayer player) {
@@ -81,6 +87,8 @@ public final class PlaceholderManager {
                 case DEATHS -> player.getDeaths() + "";
                 case KD -> player.getKills() / (double) player.getDeaths() + "";
                 case POINTS -> player.getPoints() + "";
+                case KILLSTREAK -> player.getCurrentKillstreak() + "";
+                case MAXKILLSTREAK -> player.getHighestKillstreak() + "";
             };
         }
     }

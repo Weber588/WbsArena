@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import wbs.arena.arena.Arena;
 import wbs.arena.data.ArenaPlayer;
-import wbs.utils.util.WbsScoreboard;
+import wbs.arena.kit.PreviewManager;
 import wbs.utils.util.entities.state.SavedPlayerState;
 import wbs.utils.util.entities.state.tracker.*;
 
@@ -36,7 +36,17 @@ public final class ArenaLobby {
             lobbyState.track(new LocationState(WbsArena.getInstance().settings.getLobbyLocation()));
             lobbyState.track(new GameModeState(GameMode.ADVENTURE));
 
-            lobbyState.trackAll();
+            lobbyState.track(new AllowFlightState());
+            lobbyState.track(new FlyingState());
+            lobbyState.track(new HungerState());
+            lobbyState.track(new SaturationState());
+            lobbyState.track(new XPState());
+            lobbyState.track(new HealthState());
+            lobbyState.track(new PotionEffectsState());
+            lobbyState.track(new FallDistanceState());
+            lobbyState.track(new FireTicksState());
+            lobbyState.track(new InvulnerableState());
+            lobbyState.track(new VelocityState());
         }
 
         return lobbyState;
@@ -76,6 +86,8 @@ public final class ArenaLobby {
             return false;
         }
 
+        PreviewManager.endPreview(player.getPlayer());
+
         SavedPlayerState playerState = playersInLobby.get(player);
         playersInLobby.remove(player);
 
@@ -94,6 +106,8 @@ public final class ArenaLobby {
             }
         }
 
+        PreviewManager.endPreview(player.getPlayer());
+
         currentArenas.put(player, arena);
         arena.respawn(player);
         return true;
@@ -111,6 +125,8 @@ public final class ArenaLobby {
         if (lobbyLocation == null) {
             player.sendMessage("Lobby location not set.");
         }
+
+        PreviewManager.endPreview(player.getPlayer());
 
         getLobbyState().restoreState(player.getPlayer());
         player.resetKillstreak();
