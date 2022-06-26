@@ -1,12 +1,15 @@
 main: wbs.arena.WbsArena
 name: WbsArena
 version: 0.0.1
-depend:
-  - WbsUtils
-  - Vault
 api-version: 1.16
 author: Weber588
 description: Highly configurable KitPvP plugin, designed for KeiNett's minigames server.
+loadbefore:
+  # Not using anything with citizens, but doing this to ensure placeholders register before citizens loads
+  - Citizens
+depend:
+  - WbsUtils
+  - Vault
 commands:
   wbsarena:
     aliases:

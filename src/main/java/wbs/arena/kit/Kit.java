@@ -15,6 +15,7 @@ import wbs.arena.kit.unlock.KitUnlockMethod;
 import wbs.utils.util.WbsEnums;
 import wbs.utils.util.entities.state.SavedEntityState;
 import wbs.utils.util.entities.state.tracker.InventoryState;
+import wbs.utils.util.entities.state.tracker.PotionEffectsState;
 import wbs.utils.util.entities.state.tracker.XPState;
 import wbs.utils.util.string.WbsStrings;
 
@@ -29,7 +30,9 @@ public class Kit {
     public static SavedEntityState<Player> getDefaultEntityState() {
         return new SavedEntityState<Player>()
                 .track(new InventoryState())
-                .track(new XPState());
+                .track(new XPState())
+                .track(new PotionEffectsState())
+                ;
     }
 
     @NotNull

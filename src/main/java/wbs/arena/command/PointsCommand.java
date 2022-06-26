@@ -109,6 +109,7 @@ public class PointsCommand extends WbsSubcommand {
                 sendMessage("Set " + player.getName() + "'s points to " + points + ".", sender);
             }
         }
+        player.refreshScoreboard();
     }
 
     @Override

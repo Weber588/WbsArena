@@ -148,7 +148,7 @@ public class CombatListener implements Listener {
         ProjectileSource shooter = projectile.getShooter();
 
         if (shooter instanceof Player player) {
-            ArenaPlayer arenaPlayer = ArenaLobby.getPlayerFromArena(player);
+            ArenaPlayer arenaPlayer = ArenaLobby.getPlayerFromLobby(player);
 
             if (arenaPlayer != null) {
                 if (projectile instanceof AbstractArrow arrow) {

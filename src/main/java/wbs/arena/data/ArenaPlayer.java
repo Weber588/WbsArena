@@ -347,6 +347,9 @@ public class ArenaPlayer implements RecordProducer {
         if (statsScoreboard == null) {
             loadScoreboard();
         }
+
+        boolean isViewing = statsScoreboard.isBeingViewedBy(player);
+
         statsScoreboard.clear();
 
         statsScoreboard.addLine(BORDER);
@@ -361,11 +364,15 @@ public class ArenaPlayer implements RecordProducer {
         statsScoreboard.addLine("&r&r");
         statsScoreboard.addLine(BORDER + "&r");
 
-        statsScoreboard.showToPlayer(getPlayer());
+        // Re-show, since the underlying scoreboard is re-registered
+        if (isViewing) {
+            statsScoreboard.showToPlayer(getPlayer());
+        }
     }
 
     public void showScoreboard() {
         refreshScoreboard();
+        statsScoreboard.showToPlayer(getPlayer());
     }
 
     public void hideScoreboard() {

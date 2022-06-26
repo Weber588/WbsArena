@@ -43,7 +43,7 @@ public class CombatManager {
         ProjectileSource shooter = projectile.getShooter();
 
         if (shooter instanceof Player player) {
-            ArenaPlayer arenaPlayer = ArenaLobby.getPlayerFromArena(player);
+            ArenaPlayer arenaPlayer = ArenaLobby.getPlayerFromLobby(player);
 
             if (arenaPlayer != null) {
                 projectilesFired.put(arenaPlayer, new WeakReference<>(projectile));

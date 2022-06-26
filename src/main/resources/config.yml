@@ -104,6 +104,10 @@ options:
     # to do "/arena leave" to leave the arena.
     leave-on-death: true
 
+    # Optionally, you can provide a list of worlds here to show scoreboards and prevent damage
+    # while in the lobby
+    arena-worlds: []
+
     # The death message that appears when a player dies to another player
     kill-message-format: '%victim% was slain by %attacker%!'
     # The death message that appears when a player dies without being directly killed

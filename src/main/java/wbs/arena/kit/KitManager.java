@@ -20,7 +20,7 @@ import java.util.*;
 public final class KitManager {
     private KitManager() {}
 
-    private static final Map<String, Kit> kits = new HashMap<>();
+    private static final LinkedHashMap<String, Kit> kits = new LinkedHashMap<>();
 
     public static void addKit(Kit kit) {
         int order = kit.getOrder();

@@ -54,11 +54,16 @@ public class MiscListener implements Listener {
 
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
-        if (!settings.preventDropsInArena()) {
+        Player player = event.getPlayer();
+
+        if (PreviewManager.isPreviewing(player)) {
+            event.setCancelled(true);
             return;
         }
 
-        Player player = event.getPlayer();
+        if (!settings.preventDropsInArena()) {
+            return;
+        }
 
         ArenaPlayer arenaPlayer = ArenaLobby.getPlayerFromArena(player);
 
@@ -76,12 +81,17 @@ public class MiscListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!settings.preventItemMgmtInArena()) {
-            return;
-        }
-
         HumanEntity human = event.getWhoClicked();
         if (human instanceof Player player) {
+            if (PreviewManager.isPreviewing(player)) {
+                event.setCancelled(true);
+                return;
+            }
+
+            if (!settings.preventItemMgmtInArena()) {
+                return;
+            }
+
             ArenaPlayer arenaPlayer = ArenaLobby.getPlayerFromArena(player);
 
             if (arenaPlayer != null) {
@@ -96,7 +106,7 @@ public class MiscListener implements Listener {
             return;
         }
 
-        ArenaPlayer player = ArenaLobby.getPlayerFromArena(event.getPlayer());
+        ArenaPlayer player = ArenaLobby.getPlayerFromLobby(event.getPlayer());
 
         if (player != null) {
             event.setCancelled(true);
@@ -105,6 +115,9 @@ public class MiscListener implements Listener {
 
     @EventHandler
     public void onTeleport(PlayerTeleportEvent event) {
-        PreviewManager.endPreview(event.getPlayer());
+        switch (event.getCause()) {
+            case ENDER_PEARL, CHORUS_FRUIT -> event.setCancelled(true);
+            default -> PreviewManager.endPreview(event.getPlayer());
+        }
     }
 }

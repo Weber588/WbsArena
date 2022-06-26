@@ -1,7 +1,12 @@
 package wbs.arena.kit;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import wbs.arena.CombatManager;
+import wbs.arena.data.ArenaDB;
+import wbs.arena.data.ArenaPlayer;
+import wbs.arena.data.PlayerManager;
 import wbs.utils.util.entities.state.SavedEntityState;
 
 public class PreviewInstance {
@@ -27,6 +32,9 @@ public class PreviewInstance {
 
     public void end() {
         state.restoreState(player);
+
+        ArenaPlayer arenaPlayer = ArenaDB.getPlayerManager().getCached(player.getUniqueId());
+        CombatManager.getRegisteredProjectiles(arenaPlayer).forEach(Entity::remove);
 
         if (taskId != -1) {
             Bukkit.getScheduler().cancelTask(taskId);
