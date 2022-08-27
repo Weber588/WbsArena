@@ -115,9 +115,11 @@ public class MiscListener implements Listener {
 
     @EventHandler
     public void onTeleport(PlayerTeleportEvent event) {
-        switch (event.getCause()) {
-            case ENDER_PEARL, CHORUS_FRUIT -> event.setCancelled(true);
-            default -> PreviewManager.endPreview(event.getPlayer());
+        if (PreviewManager.isPreviewing(event.getPlayer())) {
+            switch (event.getCause()) {
+                case ENDER_PEARL, CHORUS_FRUIT -> event.setCancelled(true);
+                default -> PreviewManager.endPreview(event.getPlayer());
+            }
         }
     }
 }
